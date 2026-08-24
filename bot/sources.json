@@ -1,0 +1,177 @@
+[
+  {
+    "name": "VnExpress Kinh doanh",
+    "url": "https://vnexpress.net/rss/kinh-doanh.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "Tuoi Tre Kinh doanh",
+    "url": "https://tuoitre.vn/rss/kinh-doanh.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "Thanh Nien Kinh te",
+    "url": "https://thanhnien.vn/rss/kinh-te.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "VietnamNet Kinh doanh",
+    "url": "https://vietnamnet.vn/rss/kinh-doanh.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "Tien Phong Kinh te",
+    "url": "https://www.tienphong.vn/rss/kinh-te.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "CafeF",
+    "url": "https://cafef.vn/home.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "CafeF Thi truong chung khoan",
+    "url": "https://cafef.vn/thi-truong-chung-khoan.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "CafeF Tai chinh quoc te",
+    "url": "https://cafef.vn/tai-chinh-quoc-te.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "CafeF Tai chinh ngan hang",
+    "url": "https://cafef.vn/tai-chinh-ngan-hang.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "CafeF Vi mo dau tu",
+    "url": "https://cafef.vn/vi-mo-dau-tu.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "VnEconomy",
+    "url": "https://vneconomy.vn/rss/home.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "Dau Tu",
+    "url": "https://baodautu.vn/rss/tin-moi.rss",
+    "category": "Kinh tế"
+  },
+  {
+    "name": "VnExpress So hoa",
+    "url": "https://vnexpress.net/rss/so-hoa.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "Tuoi Tre Cong nghe",
+    "url": "https://tuoitre.vn/rss/nhip-song-so.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "Thanh Nien Cong nghe",
+    "url": "https://thanhnien.vn/rss/cong-nghe.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "ICTNews",
+    "url": "https://ictnews.vietnamnet.vn/rss/home.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "GenK",
+    "url": "https://genk.vn/rss/home.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "VietnamNet Cong nghe",
+    "url": "https://vietnamnet.vn/rss/cong-nghe.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "Tien Phong Cong nghe",
+    "url": "https://www.tienphong.vn/rss/cong-nghe.rss",
+    "category": "Công nghệ"
+  },
+  {
+    "name": "VnExpress Giao duc",
+    "url": "https://vnexpress.net/rss/giao-duc.rss",
+    "category": "Giáo dục"
+  },
+  {
+    "name": "Tuoi Tre Giao duc",
+    "url": "https://tuoitre.vn/rss/giao-duc.rss",
+    "category": "Giáo dục"
+  },
+  {
+    "name": "Thanh Nien Giao duc",
+    "url": "https://thanhnien.vn/rss/giao-duc.rss",
+    "category": "Giáo dục"
+  },
+  {
+    "name": "Dan Tri Giao duc",
+    "url": "https://dantri.com.vn/giao-duc.rss",
+    "category": "Giáo dục"
+  },
+  {
+    "name": "VietnamNet Giao duc",
+    "url": "https://vietnamnet.vn/rss/giao-duc.rss",
+    "category": "Giáo dục"
+  },
+  {
+    "name": "VnExpress Doi song",
+    "url": "https://vnexpress.net/rss/doi-song.rss",
+    "category": "Đời sống"
+  },
+  {
+    "name": "Tuoi Tre Suc khoe",
+    "url": "https://tuoitre.vn/rss/suc-khoe.rss",
+    "category": "Đời sống"
+  },
+  {
+    "name": "Thanh Nien Doi song",
+    "url": "https://thanhnien.vn/rss/doi-song.rss",
+    "category": "Đời sống"
+  },
+  {
+    "name": "Dan Tri Doi song",
+    "url": "https://dantri.com.vn/doi-song.rss",
+    "category": "Đời sống"
+  },
+  {
+    "name": "Phu Nu VN",
+    "url": "https://phunuvietnam.vn/rss/home.rss",
+    "category": "Đời sống"
+  },
+  {
+    "name": "VietnamNet Doi song",
+    "url": "https://vietnamnet.vn/rss/doi-song.rss",
+    "category": "Đời sống"
+  },
+  {
+    "name": "VnExpress Gioi tre",
+    "url": "https://vnexpress.net/rss/goc-nhin.rss",
+    "category": "Gen Z"
+  },
+  {
+    "name": "Tuoi Tre Gioi tre",
+    "url": "https://tuoitre.vn/rss/nhip-song-tre.rss",
+    "category": "Gen Z"
+  },
+  {
+    "name": "Thanh Nien Gioi tre",
+    "url": "https://thanhnien.vn/rss/gioi-tre.rss",
+    "category": "Gen Z"
+  },
+  {
+    "name": "Kenh14",
+    "url": "https://kenh14.vn/index.rss",
+    "category": "Gen Z"
+  },
+  {
+    "name": "Dan Tri",
+    "url": "https://dantri.com.vn/home.rss",
+    "category": "Gen Z"
+  }
+]

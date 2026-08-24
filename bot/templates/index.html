@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>News Bot — Dashboard</title>
+<style>
+:root{
+  --bg:#07090f;--panel:#0d1117;--panel2:#131b26;--border:#1d2836;--border2:#2a3a52;
+  --text:#e6edf3;--muted:#7d8590;--accent:#00e68a;--accent-dim:rgba(0,230,138,.12);
+  --bad:#ff4d5e;--warn:#ffb454;
+  --cat-tech:#3b82f6;--cat-tech-dim:rgba(59,130,246,.13);
+  --cat-eco:#00e68a;--cat-eco-dim:rgba(0,230,138,.13);
+  --cat-edu:#f97316;--cat-edu-dim:rgba(249,115,22,.13);
+  --cat-life:#a855f7;--cat-life-dim:rgba(168,85,247,.13);
+  --cat-genz:#ec4899;--cat-genz-dim:rgba(236,72,153,.13);
+  --cat-other:#7d8590;--cat-other-dim:rgba(125,133,144,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:14px}
+.mono{font-family:"SF Mono",Menlo,Consolas,"Roboto Mono",monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 20px 40px}
+
+header{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--panel);border:1px solid var(--border);border-radius:16px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#00e68a,#3b82f6);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:#04110b}
+.brand h1{font-size:16px;letter-spacing:.02em}
+.brand .sub{font-size:10.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+.live{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;padding:5px 13px;border-radius:99px;border:1px solid var(--border2);color:var(--muted)}
+.live .dot{width:8px;height:8px;border-radius:50%;background:#555}
+.live.on{color:var(--accent);border-color:rgba(0,230,138,.45);background:var(--accent-dim)}
+.live.on .dot{background:var(--accent);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,230,138,.5)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+.btn{cursor:pointer;border:1px solid var(--border2);background:var(--panel2);color:var(--text);padding:9px 18px;border-radius:10px;font-size:12.5px;font-weight:600;letter-spacing:.03em;transition:.15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#04110b;text-transform:uppercase;letter-spacing:.09em;font-weight:800}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.small{padding:6px 12px;font-size:11.5px}
+.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.ticker{display:flex;gap:10px;overflow-x:auto;padding:11px 14px;background:var(--panel);border:1px solid var(--border);border-radius:16px;margin-bottom:14px}
+.tk{min-width:128px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:11px;flex-shrink:0}
+.tk .s{font-size:9.5px;color:var(--muted);font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.tk .v{font-size:16px;font-weight:700;margin-top:2px;white-space:nowrap}
+.tk .c{font-size:11px;margin-top:1px;white-space:nowrap}
+.up{color:var(--accent)}.down{color:var(--bad)}.flat{color:var(--muted)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:15px 17px}
+.stat .v{font-size:21px;font-weight:700}
+.stat .l{font-size:10.5px;color:var(--muted);margin-top:4px;letter-spacing:.08em;text-transform:uppercase}
+select{background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:6px 10px;border-radius:9px;font-size:13px}
+
+/* Category tabs */
+.cat-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 0 2px;margin-bottom:12px;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{cursor:pointer;border:1px solid var(--border2);background:var(--panel);color:var(--muted);padding:7px 15px;border-radius:99px;font-size:12px;font-weight:600;letter-spacing:.03em;white-space:nowrap;transition:.15s;display:flex;align-items:center;gap:6px}
+.cat-tab:hover{border-color:var(--border2);color:var(--text)}
+.cat-tab.active{color:#fff;border-color:transparent}
+.cat-tab .cnt{font-size:10px;opacity:.75;font-weight:700}
+.cat-tab[data-cat="Tất cả"].active{background:linear-gradient(135deg,#00e68a,#3b82f6);color:#04110b}
+.cat-tab[data-cat="Công nghệ"].active{background:var(--cat-tech);border-color:var(--cat-tech)}
+.cat-tab[data-cat="Kinh tế"].active{background:var(--cat-eco);color:#04110b}
+.cat-tab[data-cat="Giáo dục"].active{background:var(--cat-edu)}
+.cat-tab[data-cat="Đời sống"].active{background:var(--cat-life)}
+.cat-tab[data-cat="Gen Z"].active{background:var(--cat-genz)}
+
+.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.row{display:flex;gap:9px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+input[type=text],input[type=password]{background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 11px;border-radius:9px;font-size:13px;width:100%;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+
+.feed{max-height:600px;overflow-y:auto;padding-right:4px}
+.item{display:block;padding:12px 10px;border-bottom:1px solid var(--border);border-left:2px solid transparent;border-radius:0 8px 8px 0;transition:.12s}
+.item:hover{background:var(--panel2);border-left-color:var(--accent)}
+.item:last-child{border-bottom:none}
+.badges{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.badge{display:inline-block;font-size:9.5px;padding:2px 8px;border-radius:5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.badge.cat{font-size:9px;padding:2px 7px}
+.badge-tech{background:var(--cat-tech-dim);color:var(--cat-tech)}
+.badge-eco{background:var(--cat-eco-dim);color:var(--cat-eco)}
+.badge-edu{background:var(--cat-edu-dim);color:var(--cat-edu)}
+.badge-life{background:var(--cat-life-dim);color:var(--cat-life)}
+.badge-genz{background:var(--cat-genz-dim);color:var(--cat-genz)}
+.badge-other{background:var(--cat-other-dim);color:var(--cat-other)}
+.badge-src{background:var(--accent-dim);color:var(--accent)}
+.item a{color:var(--text);text-decoration:none;font-weight:650;line-height:1.45;font-size:13.5px;display:block;margin-top:6px}
+.item a:hover{color:var(--accent)}
+.item p{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{font-size:10.5px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+
+.chan{border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:11px;background:var(--bg)}
+.chan .head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.chan b{font-size:12.5px;letter-spacing:.04em}
+.state{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:99px}
+.state.ok{color:var(--accent);background:var(--accent-dim)}
+.state.no{color:var(--warn);background:rgba(255,180,84,.1)}
+
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 13px;margin-top:2px}
+.switch span{font-size:12.5px}
+.toggle{position:relative;width:42px;height:23px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--border2);border-radius:99px;transition:.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;height:17px;width:17px;left:3px;top:3px;background:#aab3c5;border-radius:50%;transition:.2s}
+.toggle input:checked+.slider{background:var(--accent)}
+.toggle input:checked+.slider:before{transform:translateX(19px);background:#04110b}
+
+.src-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)}
+.src-row:last-of-type{border-bottom:none}
+.src-row .n{font-weight:650;font-size:12px;min-width:130px}
+.src-row .u{color:var(--muted);font-size:10.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+pre#logBox{background:#05070a;border:1px solid var(--border);border-radius:12px;padding:12px;font-size:10.5px;color:#39e58c;max-height:240px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;font-family:"SF Mono",Menlo,Consolas,monospace;line-height:1.6}
+.hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5}
+.empty{text-align:center;color:var(--muted);padding:34px 10px;font-size:12.5px}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--panel2);border:1px solid var(--accent);color:var(--text);padding:12px 18px;border-radius:12px;font-size:12.5px;box-shadow:0 10px 34px rgba(0,0,0,.6);display:none;z-index:9;max-width:340px}
+.toast.err{border-color:var(--bad)}
+footer{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.06em;margin-top:6px}
+@media(max-width:920px){.grid,.stats{grid-template-columns:1fr}}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:9px}::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">N</div>
+      <div><h1>News Bot</h1><div class="sub">Công nghệ · Kinh tế · Giáo dục · Đời sống · Gen Z</div></div>
+    </div>
+    <span id="statusPill" class="live"><span class="dot"></span><span id="statusText">ĐANG KẾT NỐI…</span></span>
+    <div class="spacer" style="flex:1"></div>
+    <button id="btnFetch" class="btn primary" onclick="runFetch()">⟳ Lấy tin ngay</button>
+  </header>
+
+  <div class="ticker" id="mktTicker"><span style="color:var(--muted);font-size:12px">Đang tải số liệu thị trường…</span></div>
+
+  <div class="stats">
+    <div class="stat"><div class="v mono" id="statToday">–</div><div class="l">Tin hôm nay</div></div>
+    <div class="stat"><div class="v mono" id="statTotal">–</div><div class="l">Tổng tin đã lưu</div></div>
+    <div class="stat"><div class="v mono" id="statLastRun">–</div><div class="l">Chu kỳ chạy cuối</div></div>
+    <div class="stat"><div class="v"><select id="selInterval" onchange="saveInterval()">
+        <option value="5">5 phút</option><option value="10">10 phút</option>
+        <option value="15">15 phút</option><option value="30">30 phút</option>
+        <option value="60">60 phút</option></select></div><div class="l">Tự động lấy mỗi</div></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Luồng tin tức <span id="newsCount" class="mono" style="letter-spacing:0"></span></h2>
+        <!-- Category tabs -->
+        <div class="cat-tabs" id="catTabs">
+          <div class="cat-tab active" data-cat="Tất cả" onclick="selectCat('Tất cả')">🌐 Tất cả <span class="cnt" id="cntAll"></span></div>
+          <div class="cat-tab" data-cat="Công nghệ" onclick="selectCat('Công nghệ')">🖥 Công nghệ <span class="cnt" id="cntTech"></span></div>
+          <div class="cat-tab" data-cat="Kinh tế" onclick="selectCat('Kinh tế')">📈 Kinh tế <span class="cnt" id="cntEco"></span></div>
+          <div class="cat-tab" data-cat="Giáo dục" onclick="selectCat('Giáo dục')">🎓 Giáo dục <span class="cnt" id="cntEdu"></span></div>
+          <div class="cat-tab" data-cat="Đời sống" onclick="selectCat('Đời sống')">🌿 Đời sống <span class="cnt" id="cntLife"></span></div>
+          <div class="cat-tab" data-cat="Gen Z" onclick="selectCat('Gen Z')">✨ Gen Z <span class="cnt" id="cntGenz"></span></div>
+        </div>
+        <div class="row">
+          <select id="selSource" onchange="loadNews()" style="max-width:200px"></select>
+          <input type="text" id="inpSearch" placeholder="Tìm từ khóa…" oninput="debouncedNews()" style="flex:1;min-width:140px">
+        </div>
+        <div id="newsList" class="feed"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Kênh phân phối</h2>
+        <div class="chan">
+          <div class="head"><b>TELEGRAM</b><span id="tgState" class="state no">offline</span></div>
+          <div class="row"><input type="password" id="tgToken" placeholder="Bot token (@BotFather)"></div>
+          <div class="row" style="margin-bottom:0"><input type="text" id="tgChat" placeholder="Chat ID"></div>
+          <div class="row" style="margin:10px 0 0"><button class="btn small" onclick="saveChannels()">Lưu</button><button class="btn small" onclick="testChannel('telegram')">Test gửi</button></div>
+        </div>
+        <div class="chan">
+          <div class="head"><b>DISCORD</b><span id="dcState" class="state no">offline</span></div>
+          <div class="row"><input type="password" id="dcToken" placeholder="Bot token (Developer Portal)"></div>
+          <div class="row" style="margin-bottom:0"><input type="text" id="dcChannel" placeholder="Channel ID"></div>
+          <div class="row" style="margin:10px 0 0"><button class="btn small" onclick="saveChannels()">Lưu</button><button class="btn small" onclick="testChannel('discord')">Test gửi</button></div>
+        </div>
+        <div class="switch">
+          <span>Tự động đẩy tin khi có<br><small style="color:var(--muted)">Tắt = chỉ lưu bảng tin (safe mode)</small></span>
+          <label class="toggle"><input type="checkbox" id="swAutoSend" onchange="toggleAutoSend()"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Nguồn dữ liệu RSS <span class="mono" id="srcCount">0</span></h2>
+        <div id="srcList"></div>
+        <div class="row" style="margin-top:11px;margin-bottom:0">
+          <input type="text" id="srcName" placeholder="Tên nguồn" style="max-width:125px">
+          <input type="text" id="srcUrl" placeholder="https://…/rss" style="flex:1;min-width:150px">
+          <button class="btn small primary" onclick="addSource()">+</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Nhật ký hệ thống</h2>
+        <pre id="logBox">Đang tải…</pre>
+        <div class="row" style="margin:10px 0 0"><button class="btn small" onclick="loadLogs()">↻ Làm mới</button></div>
+      </div>
+    </div>
+  </div>
+  <footer>NEWS BOT · CHẠY CỤC BỘ TẠI 127.0.0.1:8787 · DỮ LIỆU LƯU TRÊN MÁY BẠN</footer>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let toastTimer=null;
+let activeCat="Tất cả";
+
+function esc(s){const d=document.createElement("div");d.textContent=s??"";return d.innerHTML}
+function fmtTime(iso){
+  if(!iso)return "–";
+  const d=new Date(iso);
+  if(isNaN(d))return iso;
+  return d.toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})+" · "+d.toLocaleDateString("vi-VN",{day:"2-digit",month:"2-digit"});
+}
+function fmtNum(v){
+  const n=Number(String(v).replace(/,/g,""));
+  return isNaN(n)?String(v):n.toLocaleString("vi-VN",{maximumFractionDigits:2});
+}
+
+async function api(path,opts={}){
+  const r=await fetch(path,{headers:{"Content-Type":"application/json"},...opts});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data.error||data.detail||("Lỗi "+r.status));
+  return data;
+}
+function toast(msg,ok=true){
+  const t=$("toast");t.textContent=msg;t.className="toast"+(ok?"":" err");t.style.display="block";
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display="none",3500);
+}
+
+// Category
+const CAT_MAP={
+  "Công nghệ":{cls:"badge-tech",cntId:"cntTech"},
+  "Kinh tế":{cls:"badge-eco",cntId:"cntEco"},
+  "Giáo dục":{cls:"badge-edu",cntId:"cntEdu"},
+  "Đời sống":{cls:"badge-life",cntId:"cntLife"},
+  "Gen Z":{cls:"badge-genz",cntId:"cntGenz"},
+};
+
+function catBadgeClass(cat){
+  return (CAT_MAP[cat]||{cls:"badge-other"}).cls;
+}
+
+function selectCat(cat){
+  activeCat=cat;
+  document.querySelectorAll(".cat-tab").forEach(el=>{
+    el.classList.toggle("active",el.dataset.cat===cat);
+  });
+  $("selSource").value="";
+  loadNews();
+}
+
+async function loadCategories(){
+  try{
+    const d=await api("/api/categories");
+    const counts=d.counts||{};
+    let total=0;
+    Object.values(counts).forEach(v=>total+=v);
+    $("cntAll").textContent=total?`(${total})`:"";
+    Object.entries(CAT_MAP).forEach(([cat,cfg])=>{
+      const el=$(cfg.cntId);
+      if(el)el.textContent=counts[cat]?`(${counts[cat]})`:"";
+    });
+  }catch(e){}
+}
+
+async function refreshStatus(){
+  try{
+    const s=await api("/api/status");
+    const pill=$("statusPill"),txt=$("statusText");
+    if(s.running){pill.className="live on";txt.textContent="ĐANG LẤY TIN"}
+    else if(s.auto_send){pill.className="live on";txt.textContent="LIVE · TỰ ĐỘNG GỬI"}
+    else{pill.className="live";txt.textContent="SAFE MODE · KHÔNG GỬI"}
+    $("statTotal").textContent=fmtNum(s.news_total);
+    $("statToday").textContent=s.today_fetched;
+    $("statLastRun").textContent=s.last_run?fmtTime(s.last_run).split(" · ")[0]:"–";
+    $("selInterval").value=String(s.interval);
+    $("swAutoSend").checked=s.auto_send;
+    setChan("tg",s.telegram_ready);setChan("dc",s.discord_ready);
+    $("srcCount").textContent=s.sources_count;
+  }catch(e){$("statusPill").className="live";$("statusText").textContent="MẤT KẾT NỐI SERVER"}
+}
+function setChan(p,ready){
+  const el=$(p+"State");
+  el.textContent=ready?"online":"chưa cấu hình";
+  el.className="state "+(ready?"ok":"no");
+}
+
+async function loadSettings(){
+  try{
+    const s=await api("/api/settings");
+    $("tgChat").value=s.telegram_chat_id||"";
+    $("dcChannel").value=s.discord_channel_id||"";
+    $("tgToken").placeholder=s.telegram_token_hint?("Đã lưu "+s.telegram_token_hint+" — điền mới để thay"):"Bot token (@BotFather)";
+    $("dcToken").placeholder=s.discord_token_hint?("Đã lưu "+s.discord_token_hint+" — điền mới để thay"):"Bot token (Developer Portal)";
+  }catch(e){}
+}
+async function saveChannels(){
+  try{
+    await api("/api/settings",{method:"POST",body:JSON.stringify({
+      telegram_token:$("tgToken").value.trim(),telegram_chat_id:$("tgChat").value.trim(),
+      discord_token:$("dcToken").value.trim(),discord_channel_id:$("dcChannel").value.trim()})});
+    $("tgToken").value="";$("dcToken").value="";
+    await Promise.all([refreshStatus(),loadSettings()]);
+    toast("Đã lưu cấu hình kênh phân phối");
+  }catch(e){toast(e.message,false)}
+}
+async function toggleAutoSend(){
+  try{
+    await api("/api/settings",{method:"POST",body:JSON.stringify({auto_send:$("swAutoSend").checked?"1":"0"})});
+    await refreshStatus();
+    toast($("swAutoSend").checked?"LIVE: đã bật tự động đẩy tin":"SAFE MODE: đã tắt tự động gửi");
+  }catch(e){toast(e.message,false)}
+}
+async function saveInterval(){
+  try{
+    await api("/api/settings",{method:"POST",body:JSON.stringify({interval:parseInt($("selInterval").value)})});
+    toast("Chu kỳ tự động: mỗi "+$("selInterval").value+" phút");
+  }catch(e){toast(e.message,false)}
+}
+async function testChannel(kind){
+  const name=kind==="telegram"?"Telegram":"Discord";
+  toast("Đang gửi tin kiểm tra qua "+name+"…");
+  try{
+    await api("/api/test/"+kind,{method:"POST"});
+    toast("Thành công! Kiểm tra tin nhắn trên "+name);
+  }catch(e){toast("Thất bại: "+e.message,false)}
+}
+
+async function runFetch(){
+  const btn=$("btnFetch");btn.disabled=true;btn.textContent="Đang lấy…";
+  try{
+    const r=await api("/api/fetch",{method:"POST"});
+    let msg=`Hoàn tất: ${r.new} tin mới từ ${r.sources_ok} nguồn`;
+    if(r.errors&&r.errors.length)msg+=`, ${r.errors.length} nguồn lỗi`;
+    toast(msg);
+    await Promise.all([loadNews(),refreshStatus(),loadLogs(),loadCategories()]);
+  }catch(e){toast(e.message,false)}
+  btn.disabled=false;btn.textContent="⟳ Lấy tin ngay";
+}
+
+async function loadSources(){
+  try{
+    const d=await api("/api/sources");
+    const sel=$("selSource");
+    sel.innerHTML='<option value="">Tất cả nguồn</option>';
+    d.sources.forEach(s=>{const o=document.createElement("option");o.value=s.name;o.textContent=s.name;sel.appendChild(o)});
+    $("srcList").innerHTML=d.sources.map((s,i)=>`
+      <div class="src-row">
+        <span class="badge cat ${catBadgeClass(s.category||'Khác')}">${esc(s.category||'Khác')}</span>
+        <span class="n">${esc(s.name)}</span>
+        <span class="u">${esc(s.url)}</span>
+        <button class="btn small danger" onclick="delSource(${i})">✕</button>
+      </div>`).join("")||'<div class="empty">Chưa có nguồn nào</div>';
+  }catch(e){}
+}
+async function addSource(){
+  try{
+    await api("/api/sources",{method:"POST",body:JSON.stringify({name:$("srcName").value.trim(),url:$("srcUrl").value.trim()})});
+    $("srcName").value="";$("srcUrl").value="";
+    await loadSources();await refreshStatus();
+    toast("Đã thêm nguồn dữ liệu");
+  }catch(e){toast(e.message,false)}
+}
+async function delSource(i){
+  if(!confirm("Xóa nguồn này khỏi bot?"))return;
+  try{
+    await api("/api/sources/"+i,{method:"DELETE"});
+    await loadSources();await refreshStatus();
+    toast("Đã xóa nguồn");
+  }catch(e){toast(e.message,false)}
+}
+
+async function loadNews(){
+  try{
+    const q=$("inpSearch").value.trim();
+    const src=$("selSource").value;
+    const cat=activeCat==="Tất cả"?"":activeCat;
+    const d=await api(`/api/news?limit=80&source=${encodeURIComponent(src)}&category=${encodeURIComponent(cat)}&q=${encodeURIComponent(q)}`);
+    $("newsCount").textContent=d.items.length?d.items.length+" mục":"";
+    $("newsList").innerHTML=d.items.map(n=>{
+      const catCls=catBadgeClass(n.category||"Khác");
+      return `
+      <div class="item">
+        <div class="badges">
+          <span class="badge cat ${catCls}">${esc(n.category||"Khác")}</span>
+          <span class="badge badge-src">${esc(n.source)}</span>
+        </div>
+        <a href="${esc(n.link)}" target="_blank">${esc(n.title)}</a>
+        ${n.summary?`<p>${esc(n.summary)}</p>`:""}
+        <div class="meta"><span>${fmtTime(n.fetched_at)}</span><a href="${esc(n.link)}" target="_blank" style="margin-top:0;font-size:10.5px;color:var(--muted)">đọc →</a></div>
+      </div>`;
+    }).join("")||'<div class="empty">Chưa có tin. Bấm "LẤY TIN NGAY".</div>';
+  }catch(e){}
+}
+let searchTimer=null;
+function debouncedNews(){clearTimeout(searchTimer);searchTimer=setTimeout(loadNews,300)}
+
+function tile(sym,val,pct,unit){
+  const cls=pct>0?"up":pct<0?"down":"flat";
+  const arrow=pct>0?"▲":pct<0?"▼":"—";
+  const sign=pct>0?"+":"";
+  return `<div class="tk"><div class="s">${esc(sym)}${unit?` · ${esc(unit)}`:""}</div><div class="v mono ${cls}">${val}</div><div class="c ${cls}">${arrow} ${sign}${Number(pct).toFixed(2)}%</div></div>`;
+}
+
+async function loadMarket(){
+  try{
+    const d=await api("/api/market");
+    let html="";
+    (d.indices||[]).forEach(i=>{
+      html+=tile(i.symbol,i.value,i.pct,"");
+    });
+    (d.extras||[]).forEach(x=>{
+      html+=tile(x.symbol,fmtNum(x.value),x.pct,x.unit);
+    });
+    $("mktTicker").innerHTML=html||'<span style="color:var(--muted);font-size:12px">Chưa có số liệu thị trường</span>';
+  }catch(e){}
+}
+
+async function loadLogs(){
+  try{
+    const d=await api("/api/logs");
+    $("logBox").textContent=d.logs||"(trống)";
+    $("logBox").scrollTop=$("logBox").scrollHeight;
+  }catch(e){}
+}
+
+refreshStatus();loadSettings();loadSources();loadNews();loadLogs();loadMarket();loadCategories();
+setInterval(refreshStatus,15000);
+setInterval(loadNews,60000);
+setInterval(loadMarket,60000);
+setInterval(loadCategories,60000);
+</script>
+</body>
+</html>
