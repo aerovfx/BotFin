@@ -1,5 +1,7 @@
 # BotFintech
 
+![BotFintech](BotFintech.png)
+
 **BotFintech** — nền tảng bot tin tức chạy cục bộ trên máy bạn: tự động thu thập tin từ các báo lớn, theo dõi số liệu thị trường, và đẩy tin mới lên Telegram/Discord. Đi kèm dashboard web phong cách trading để điều khiển bằng nút bấm, không cần gõ lệnh.
 
 ## Tầm nhìn BotFintech
