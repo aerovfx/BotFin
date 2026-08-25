@@ -60,6 +60,7 @@ def cmd_help(_args):
         "/latest [số] — tin mới nhất (mặc định 5)\n"
         "/top [số] — tin nóng nhất theo điểm xếp hạng\n"
         "/search <từ khóa> — tìm trong tiêu đề và tóm tắt\n"
+        "/tin <chủ đề> [số] — tin theo mục, ví dụ /tin công nghệ 8\n"
         "/market — bảng chỉ số thị trường\n"
         "/trends — chủ đề đang nóng + tâm lý tin tức\n"
         "/status — trạng thái hoạt động của bot\n"
@@ -196,6 +197,53 @@ def cmd_sources(_args):
     return "Nguồn RSS hiện có:\n" + "\n".join(lines)
 
 
+CATEGORY_ALIASES = {
+    "công nghệ": "Công nghệ", "cong nghe": "Công nghệ", "tech": "Công nghệ",
+    "kinh tế": "Kinh tế", "kinh te": "Kinh tế", "chứng khoán": "Kinh tế",
+    "chung khoan": "Kinh tế", "tiền": "Kinh tế", "tien": "Kinh tế",
+    "giáo dục": "Giáo dục", "giao duc": "Giáo dục",
+    "đời sống": "Đời sống", "doi song": "Đời sống",
+    "gen z": "Gen Z", "genz": "Gen Z",
+}
+
+
+def detect_category(text):
+    low = text.lower()
+    for alias, cat in CATEGORY_ALIASES.items():
+        if alias in low:
+            return cat
+    return None
+
+
+def latest_by_cat(cat, limit=5):
+    items = [i for i in load_news() if i.get("category") == cat]
+    if not items:
+        return f"Chưa có tin nào mục {cat} trong kho. Thử /fetch để lấy tin mới."
+    newest = list(reversed(items[-40:]))
+    newest.sort(key=lambda i: i.get("score") or 0, reverse=True)
+    shown = newest[:limit]
+    body = "\n\n".join(
+        f"{_score_prefix(i)}[{i['source']}] {i['title']}\n{i['link']}" for i in shown
+    )
+    extra = f"\n\n(đang có {len(items)} tin mục {cat})" if len(items) > limit else ""
+    return f"{len(shown)} tin {cat} nổi bật:\n\n{body}{extra}"
+
+
+def cmd_cat(args):
+    if not args:
+        cats = ", ".join(sorted(set(CATEGORY_ALIASES.values())))
+        return f"Dùng: /tin <chủ đề> [số] — ví dụ /tin công nghệ 8\nChủ đề: {cats}"
+    words = list(args)
+    limit = 5
+    if words and words[-1].isdigit():
+        limit = max(1, min(int(words[-1]), 10))
+        words = words[:-1]
+    cat = detect_category(" ".join(words)) or detect_category(args[0])
+    if not cat:
+        return f"Không rõ chủ đề \"{(' '.join(words))}\".\n" + cmd_cat([])
+    return latest_by_cat(cat, limit)
+
+
 def format_fetch_result(result):
     if "error" in result:
         return f"Không lấy được tin: {result['error']}"
@@ -215,6 +263,7 @@ COMMANDS = {
     "latest": cmd_latest,
     "top": cmd_top,
     "search": cmd_search,
+    "tin": cmd_cat,
     "market": cmd_market,
     "trends": cmd_trends,
     "status": cmd_status,
@@ -278,6 +327,31 @@ def configured_chat_alive(token, configured):
         return False
 
 
+FETCH_INTENTS = ("lấy tin", "lấy thêm", "lấy mới", "cho tin", "cho xin tin",
+                 "cập nhật tin", "cập nhật", "fetch", "lay tin", "cap nhat")
+
+
+def handle_natural(token, chat_id, text, fetch_callback):
+    """Câu nói thường (không có /): hiểu ý 'lấy thêm tin [chủ đề]' hoặc coi như tìm kiếm."""
+    low = text.lower()
+    cat = detect_category(low)
+    if any(w in low for w in FETCH_INTENTS):
+        label = f" tin {cat}" if cat else ""
+        send_text(token, chat_id, f"Đang lấy{label}...")
+        result = fetch_callback() if fetch_callback else {"error": "chức năng chưa sẵn sàng"}
+        send_text(token, chat_id, format_fetch_result(result))
+        if cat:
+            send_text(token, chat_id, latest_by_cat(cat))
+        else:
+            send_text(token, chat_id, cmd_latest([]))
+        return
+    if cat:
+        send_text(token, chat_id, latest_by_cat(cat))
+        return
+    reply = cmd_search(text.split())
+    send_text(token, chat_id, reply)
+
+
 def handle_update(token, env, update, fetch_callback):
     cb = update.get("callback_query")
     if cb:
@@ -286,7 +360,7 @@ def handle_update(token, env, update, fetch_callback):
     msg = update.get("message") or {}
     chat_id = (msg.get("chat") or {}).get("id")
     text = (msg.get("text") or "").strip()
-    if not chat_id or not text.startswith("/"):
+    if not chat_id or not text:
         return
     if not allowed_chat(env, chat_id):
         configured = env.get("TELEGRAM_CHAT_ID", "").strip()
@@ -298,6 +372,16 @@ def handle_update(token, env, update, fetch_callback):
                     str(chat_id)[-4:])
         bind_chat(env, chat_id)
         env = fn.load_env(fn.ENV_FILE)
+
+    log.info("Telegram lenh tu chat ...%s: %s", str(chat_id)[-4:], text[:60])
+
+    if not text.startswith("/"):
+        try:
+            handle_natural(token, chat_id, text, fetch_callback)
+        except Exception:
+            log.exception("Xu ly cau tu nhien loi")
+            send_text(token, chat_id, "Có lỗi khi xử lý yêu cầu. Thử lệnh /help nhé.")
+        return
 
     parts = text.split(maxsplit=1)
     command = parts[0].lstrip("/").split("@")[0].lower()

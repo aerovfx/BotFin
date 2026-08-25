@@ -70,11 +70,14 @@ Nhắn trực tiếp cho bot trong Telegram:
 | `/latest [số]` | tin mới nhất từ kho |
 | `/top [số]` | tin nóng nhất theo điểm xếp hạng |
 | `/search <từ khóa>` | tìm trong tiêu đề và tóm tắt |
+| `/tin <chủ đề> [số]` | tin nổi bật theo mục, ví dụ `/tin công nghệ 8` |
 | `/market` | bảng chỉ số thị trường kèm mũi tên tăng/giảm |
 | `/trends` | chủ đề đang nóng + tâm lý tin tức |
 | `/status` | trạng thái hoạt động, chu kỳ, kênh gửi |
 | `/sources` | danh sách nguồn RSS |
 | `/fetch` | lấy tin mới ngay lập tức |
+
+Bot cũng hiểu câu nói thường: nhắn "lấy thêm tin công nghệ" sẽ lấy tin mới rồi gửi ngay các tin Công nghệ nổi bật; nhắn tên chủ đề ("kinh tế") xem tin mục đó; câu khác được coi như tìm kiếm.
 
 Chỉ chat ID đã cấu hình mới ra lệnh được bot; nếu `.env` chưa có `TELEGRAM_CHAT_ID`, người nhắn đầu tiên sẽ tự được ghi nhận.
 
