@@ -9,6 +9,7 @@ import requests
 from flask import Flask, jsonify, render_template, request
 
 import ai_enrich
+import analysis
 import fetch_news as fn
 import market_data as md
 import personalization as ps
@@ -130,7 +131,15 @@ def run_fetch(limit_per_source=10):
     sources = fn.load_json(fn.SOURCES_FILE, [])
     new_items, errors, ok_sources = [], [], 0
 
-    md.update_market()
+    snapshot = md.update_market()
+    alerts = analysis.check_alerts(snapshot or md.load_market())
+    if alerts:
+        analysis.append_history(alerts)
+        log.warning("Alert thi truong: %s", ", ".join(a["rule"] for a in alerts))
+        if get_auto_send() and channel_ready("telegram"):
+            fn.send_telegram(get_env(), [a["message"] for a in alerts])
+        if get_auto_send() and channel_ready("discord"):
+            fn.send_discord(get_env(), [a["message"] for a in alerts])
 
     for source in sources:
         try:
@@ -147,7 +156,11 @@ def run_fetch(limit_per_source=10):
     stats["runs"] = stats.get("runs", 0) + 1
     stats["last_run"] = datetime.now().isoformat(timespec="seconds")
     stats["last_new"] = len(new_items)
+    if alerts:
+        stats["last_alerts"] = [a["rule"] for a in alerts]
     result = {"new": len(new_items), "sources_ok": ok_sources, "errors": errors}
+    if alerts:
+        result["alerts"] = [a["rule"] for a in alerts]
 
     if not new_items:
         save_store(STATS_FILE, stats)
@@ -164,6 +177,7 @@ def run_fetch(limit_per_source=10):
     if ai_stats.get("enabled"):
         log.info("AI enrich: %s", ai_enrich.status_line(ai_stats))
     ranking.score_items(new_items)
+    analysis.enrich_sentiment(new_items)
     hot = [i for i in new_items if i.get("score", 0) >= ranking.config()["send_min"]]
     stats["last_push"] = len(hot)
     stats["last_held"] = len(new_items) - len(hot)
@@ -429,6 +443,18 @@ def api_profile():
     return jsonify(ps.summary())
 
 
+@app.route("/api/trends")
+def api_trends():
+    news = load_store(NEWS_STORE, [])
+    trends = analysis.detect_trends(news)
+    return jsonify({"trends": trends, "sentiment": analysis.sentiment_summary(news)})
+
+
+@app.route("/api/alerts")
+def api_alerts():
+    return jsonify({"history": fn.load_json(fn.BASE / "alert_history.json", [])[-20:]})
+
+
 @app.route("/api/logs")
 def api_logs():
     try:
@@ -448,5 +474,5 @@ if __name__ == "__main__":
     threading.Thread(target=tb.polling_worker, kwargs={"fetch_callback": trigger_fetch}, daemon=True).start()
     print("\n  Bot Tin Tức Tổng Hợp đang chạy.")
     print("  Mở trình duyệt và truy cập:  http://127.0.0.1:8787")
-    print("  Lệnh Telegram: /latest /search /market /status /sources /fetch\n")
+    print("  Lệnh Telegram: /latest /top /search /market /trends /status /sources /fetch\n")
     app.run(host="127.0.0.1", port=8787, debug=False)

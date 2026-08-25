@@ -1,0 +1,40 @@
+{
+  "rules": [
+    {
+      "name": "VN-Index biến động mạnh",
+      "symbol": "VN-Index",
+      "metric": "pct",
+      "op": "abs_gte",
+      "value": 1.5
+    },
+    {
+      "name": "VN30 biến động mạnh",
+      "symbol": "VN30",
+      "metric": "pct",
+      "op": "abs_gte",
+      "value": 1.5
+    },
+    {
+      "name": "HNX-Index biến động mạnh",
+      "symbol": "HNX-Index",
+      "metric": "pct",
+      "op": "abs_gte",
+      "value": 2.0
+    },
+    {
+      "name": "USD/VND dịch chuyển mạnh",
+      "symbol": "USD/VND",
+      "metric": "pct",
+      "op": "abs_gte",
+      "value": 0.8
+    },
+    {
+      "name": "Vàng quốc tế biến động mạnh",
+      "symbol": "Vàng quốc tế",
+      "metric": "pct",
+      "op": "abs_gte",
+      "value": 2.0
+    }
+  ],
+  "cooldown_minutes": 90
+}

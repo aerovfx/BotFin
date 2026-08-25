@@ -6,6 +6,7 @@ from pathlib import Path
 
 import requests
 
+import analysis
 import fetch_news as fn
 import personalization as pers
 import ranking as rk
@@ -59,6 +60,7 @@ def cmd_help(_args):
         "/top [số] — tin nóng nhất theo điểm xếp hạng\n"
         "/search <từ khóa> — tìm trong tiêu đề và tóm tắt\n"
         "/market — bảng chỉ số thị trường\n"
+        "/trends — chủ đề đang nóng + tâm lý tin tức\n"
         "/status — trạng thái hoạt động của bot\n"
         "/sources — danh sách nguồn RSS\n"
         "/fetch — lấy tin mới ngay lập tức"
@@ -162,6 +164,26 @@ def cmd_status(_args):
     return "\n".join(lines)
 
 
+MOOD_ICON = {"pos": "🟢", "neg": "🔴", "neu": "⚪"}
+
+
+def cmd_trends(args):
+    news = load_news()
+    trends = analysis.detect_trends(news)
+    if not trends:
+        return "Chưa phát hiện chủ đề nào đang nóng (cần ≥3 tin từ ≥2 nguồn cùng nói một chuyện)."
+    mood = analysis.sentiment_summary(news)
+    header = ""
+    if mood:
+        icon = MOOD_ICON.get(mood["avg_score"] > 0.1 and "pos" or mood["avg_score"] < -0.1 and "neg" or "neu", "⚪")
+        header = f"Tâm lý {mood['sampled']} tin gần nhất: {icon} {mood['avg_score']:+.2f} (tích cực {mood['pos']} / tiêu cực {mood['neg']})\n\n"
+    body = "\n\n".join(
+        f"🔥 [{t['count']} tin | {'/'.join(t['sources'][:3])}] ({MOOD_ICON.get(t['mood'], '⚪')}) {t['title']}\n{t['link']}"
+        for t in trends
+    )
+    return f"{header}Chủ đề đang nóng:\n\n{body}"
+
+
 def cmd_sources(_args):
     sources = fn.load_json(fn.SOURCES_FILE, [])
     if not sources:
@@ -190,6 +212,7 @@ COMMANDS = {
     "top": cmd_top,
     "search": cmd_search,
     "market": cmd_market,
+    "trends": cmd_trends,
     "status": cmd_status,
     "sources": cmd_sources,
 }

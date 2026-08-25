@@ -22,7 +22,7 @@ Bot hiện tại đã đạt ~50% tiêu chuẩn một bot thông minh (tự đ�
 - [x] **Phần 2 — AI làm giàu tin**: tóm tắt bài viết bằng LLM, tự phân loại chủ đề theo nội dung thay vì gắn cứng theo nguồn; tương thích mọi API chuẩn OpenAI (OpenAI, Ollama, LM Studio…)
 - [x] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng 0–100 cho từng tin (từ khóa, cụm nhiều nguồn cùng đăng, số liệu, ưu tiên nguồn, chống clickbait), chỉ đẩy tin đạt ngưỡng lên kênh
 - [x] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của bạn (mở bài, bấm 👍/👎) để cộng/trừ điểm các tin cùng chuyên mục, nguồn và chủ đề từ khóa
-- [ ] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức, phát hiện xu hướng, alert khi chỉ số thị trường vượt ngưỡng
+- [x] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức từ điển tiếng Việt, phát hiện chủ đề đang nóng (nhiều nguồn cùng đăng), alert tự động khi chỉ số thị trường vượt ngưỡng
 - [ ] **Phần 6 — Kháng lỗi**: retry/backoff khi nguồn lỗi, health-check định kỳ, cảnh báo qua kênh khi nguồn chết
 
 ## Tính năng nổi bật
@@ -71,6 +71,7 @@ Nhắn trực tiếp cho bot trong Telegram:
 | `/top [số]` | tin nóng nhất theo điểm xếp hạng |
 | `/search <từ khóa>` | tìm trong tiêu đề và tóm tắt |
 | `/market` | bảng chỉ số thị trường kèm mũi tên tăng/giảm |
+| `/trends` | chủ đề đang nóng + tâm lý tin tức |
 | `/status` | trạng thái hoạt động, chu kỳ, kênh gửi |
 | `/sources` | danh sách nguồn RSS |
 | `/fetch` | lấy tin mới ngay lập tức |
@@ -142,6 +143,33 @@ PERSONALIZE=1               # 0 = tắt cá nhân hóa, điểm nóng thuần he
 
 Lưu ý: nút 👍/👎 chỉ có trên Telegram (Discord không hỗ trợ inline keyboard ở chế độ bot đơn giản).
 
+### Phân tích & cảnh báo (Phần 5 của roadmap)
+
+**Sentiment tin tức** — mỗi tin mới được chấm điểm cảm xúc −1…+1 bằng từ điển tài chính tiếng Việt (có xử lý phủ định "không/chưa tăng"), gắn nhãn ▲ Tích cực / ▼ Tiêu cực / trung tính. Dashboard hiển thị mũi tên màu trên từng tin.
+
+**Chủ đề đang nóng** — gom cụm tiêu đề tương tự trong ~250 tin gần nhất: một chuyện được **≥3 tin từ ≥2 nguồn khác nhau** đăng = xu hướng. Xem ở hàng chip "🔥 Xu hướng" trên dashboard hoặc lệnh `/trends` trên Telegram (kèm tâm lý tổng thể của tin tức).
+
+**Alert thị trường** — so snapshot chỉ số với ngưỡng trong `alerts.json` (tự tạo lần chạy đầu, sửa thoải mái):
+
+```json
+{
+  "rules": [
+    {"name": "VN-Index biến động mạnh", "symbol": "VN-Index", "metric": "pct", "op": "abs_gte", "value": 1.5}
+  ]
+}
+```
+
+- `metric`: `pct` (% thay đổi) / `value` (giá trị); `op`: `abs_gte` / `gte` / `lte`
+- Vượt ngưỡng → gửi 🚨 cảnh báo lên Telegram/Discord (theo công tắc Tự động đẩy tin như tin thường), lưu lịch sử tại `/api/alerts`
+- Cooldown mặc định 90 phút mỗi rule (`ALERT_COOLDOWN_MINUTES`) chống spam
+
+```ini
+SENTIMENT=1                 # 0 = tắt chấm sentiment
+TRENDS=1                    # 0 = tắt phát hiện xu hướng
+ALERTS=1                    # 0 = tắt cảnh báo thị trường
+ALERT_COOLDOWN_MINUTES=90   # nghỉ giữa hai lần alert cùng rule
+```
+
 ## Khởi động nhanh
 
 macOS — nhấp đúp là chạy:
@@ -190,11 +218,13 @@ bot/
 ├── ai_enrich.py         # tóm tắt + phân loại tin bằng LLM (roadmap phần 2)
 ├── ranking.py           # chấm điểm độ nóng 0-100, lọc tin đẩy kênh (roadmap phần 3)
 ├── personalization.py   # học hành vi đọc, tinh chỉnh điểm theo profile (roadmap phần 4)
+├── analysis.py          # sentiment + xu hướng + alert thị trường (roadmap phần 5)
 ├── market_data.py       # số liệu chứng khoán, tỷ giá, vàng, dầu
 ├── templates/index.html # giao diện dashboard
 ├── sources.json         # danh sách nguồn RSS (thêm "priority": 1–3 để tăng điểm nguồn)
 ├── ranking_keywords.json # nhóm từ khóa quan trọng + trọng số (tự tạo lần chạy đầu)
 ├── profile.json          # profile hành vi đọc của bạn (tự học, phần 4)
+├── alerts.json           # ngưỡng cảnh báo thị trường (phần 5, sửa được)
 ├── .env                 # token Telegram/Discord (không chia sẻ!)
 ├── news.txt             # bản tin lần chạy cuối
 ├── news.json            # kho tin cho dashboard
