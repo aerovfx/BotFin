@@ -11,6 +11,7 @@ from flask import Flask, jsonify, render_template, request
 import ai_enrich
 import fetch_news as fn
 import market_data as md
+import personalization as ps
 import ranking
 import telegram_bot as tb
 
@@ -175,11 +176,15 @@ def run_fetch(limit_per_source=10):
     to_push, held_back = ranking.split_for_send(new_items)
     result["push"] = len(to_push)
     result["held"] = len(held_back)
+    links = [i["link"] for i in to_push]
     messages = [fn.format_item(i) for i in to_push]
+    markup_for = (lambda idx: ps.vote_markup(links[idx])) if ps.config()["enabled"] else None
     held_note = f" (giữ lại {len(held_back)} tin ít quan trọng)" if held_back else ""
     for kind in ("telegram", "discord"):
         if get_auto_send() and channel_ready(kind):
-            sent = (fn.send_telegram if kind == "telegram" else fn.send_discord)(get_env(), messages)
+            sender = fn.send_telegram if kind == "telegram" else fn.send_discord
+            kwargs = {"markup_for": markup_for} if kind == "telegram" else {}
+            sent = sender(get_env(), messages, **kwargs)
             result[kind] = f"đã gửi {sent}/{len(messages)}{held_note}"
         elif get_auto_send():
             result[kind] = "chưa cấu hình kênh"
@@ -404,6 +409,24 @@ def api_test(kind):
     level = logging.INFO if ok else logging.ERROR
     log.log(level, "Test %s: %s", kind, "OK" if ok else detail)
     return jsonify({"ok": ok, "detail": detail}), (200 if ok else 502)
+
+
+@app.route("/api/feedback", methods=["POST"])
+def api_feedback():
+    data = request.get_json(silent=True) or {}
+    link = (data.get("link") or "").strip()
+    action = data.get("action")
+    if not link.startswith(("http://", "https://")) or action not in ("open", "down"):
+        return jsonify({"error": "Cần link http(s) và action open/down"}), 400
+    applied = ps.record(link, action)
+    if applied:
+        log.info("Feedback %s: %s", action, link[:80])
+    return jsonify({"ok": True, "applied": applied})
+
+
+@app.route("/api/profile")
+def api_profile():
+    return jsonify(ps.summary())
 
 
 @app.route("/api/logs")

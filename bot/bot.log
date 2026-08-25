@@ -597,3 +597,18 @@
 2026-08-25 09:15:24,314 [INFO] [33mPress CTRL+C to quit[0m
 2026-08-25 09:15:27,190 [WARNING] Khong lay duoc XAUUSD=X: 404 Client Error: Not Found for url: https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD%3DX
 2026-08-25 09:15:28,143 [INFO] 127.0.0.1 - - [25/Aug/2026 09:15:28] "GET /api/news?limit=3&sort=top HTTP/1.1" 200 -
+2026-08-25 09:33:42,236 [INFO] Telegram commands: chua cau hinh token, o che doi cho
+2026-08-25 09:33:42,242 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8787
+2026-08-25 09:33:42,242 [INFO] [33mPress CTRL+C to quit[0m
+2026-08-25 09:33:43,868 [WARNING] Khong lay duoc XAUUSD=X: 404 Client Error: Not Found for url: https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD%3DX
+2026-08-25 09:33:44,845 [INFO] Cap nhat so lieu thi truong (5 chi so, 4 loai ngoai te)
+2026-08-25 09:33:45,093 [INFO] VnExpress Kinh doanh: 10 tin moi
+2026-08-25 09:33:45,236 [INFO] Tuoi Tre Kinh doanh: 2 tin moi
+2026-08-25 09:33:45,875 [INFO] 127.0.0.1 - - [25/Aug/2026 09:33:45] "GET /api/news?limit=1 HTTP/1.1" 200 -
+2026-08-25 09:33:45,891 [INFO] Feedback open: https://thanhnien.vn/long-den-coc-kien-troi-cao-gan-3-m-diem-check-in-trung-thu-
+2026-08-25 09:33:45,892 [INFO] 127.0.0.1 - - [25/Aug/2026 09:33:45] "POST /api/feedback HTTP/1.1" 200 -
+2026-08-25 09:33:45,901 [INFO] 127.0.0.1 - - [25/Aug/2026 09:33:45] "[31m[1mPOST /api/feedback HTTP/1.1[0m" 400 -
+2026-08-25 09:33:45,910 [INFO] 127.0.0.1 - - [25/Aug/2026 09:33:45] "[31m[1mPOST /api/feedback HTTP/1.1[0m" 400 -
+2026-08-25 09:33:45,920 [INFO] 127.0.0.1 - - [25/Aug/2026 09:33:45] "POST /api/feedback HTTP/1.1" 200 -
+2026-08-25 09:33:45,931 [INFO] 127.0.0.1 - - [25/Aug/2026 09:33:45] "GET /api/profile HTTP/1.1" 200 -

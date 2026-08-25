@@ -12,6 +12,7 @@ import re
 import sys
 
 import fetch_news as fn
+import personalization as pers
 
 KEYWORDS_FILE = fn.BASE / "ranking_keywords.json"
 
@@ -160,6 +161,7 @@ def score_items(items):
         score += min(max(priority - 1, 0), 2) * PRIORITY_STEP
         if clickbait_hit(f"{item['title']} {item.get('summary','')}", clickbait):
             score -= CLICKBAIT_PENALTY
+        score += pers.boost(item)
         item["score"] = max(0, min(100, round(score)))
     return items
 

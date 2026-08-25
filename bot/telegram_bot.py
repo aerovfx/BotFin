@@ -7,6 +7,7 @@ from pathlib import Path
 import requests
 
 import fetch_news as fn
+import personalization as pers
 import ranking as rk
 
 log = logging.getLogger("newsbot")
@@ -216,7 +217,34 @@ def bind_chat(env, chat_id):
     log.info("Telegram: gan chat ID moi (%s)", str(chat_id)[-4:])
 
 
+def handle_callback(token, env, cb):
+    chat_id = (cb.get("message") or {}).get("chat") or {}
+    chat_id = chat_id.get("id")
+    data = cb.get("data", "")
+    if not chat_id or not data.startswith("fb:"):
+        return
+    if not allowed_chat(env, chat_id):
+        return
+    action = {"u": "open", "d": "down"}.get(data[3:4])
+    applied = pers.record_hash(data[5:], action) if action else False
+    try:
+        _api(token, "answerCallbackQuery", callback_query_id=cb.get("id", ""),
+             text=("Đã ghi nhận 👍" if action == "open" else "Đã ghi nhận 👎") if applied else "Đã phản hồi trước đó")
+    except Exception as exc:
+        log.warning("answerCallbackQuery: %s", exc)
+    msg = cb.get("message") or {}
+    try:
+        _api(token, "editMessageReplyMarkup", chat_id=msg.get("chat", {}).get("id"),
+             message_id=msg.get("message_id"), reply_markup="")
+    except Exception as exc:
+        log.warning("editMessageReplyMarkup: %s", exc)
+
+
 def handle_update(token, env, update, fetch_callback):
+    cb = update.get("callback_query")
+    if cb:
+        handle_callback(token, env, cb)
+        return
     msg = update.get("message") or {}
     chat_id = (msg.get("chat") or {}).get("id")
     text = (msg.get("text") or "").strip()

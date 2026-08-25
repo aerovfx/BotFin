@@ -85,17 +85,21 @@ def format_item(item):
     return "\n".join(lines)
 
 
-def send_telegram(env, messages):
+def send_telegram(env, messages, markup_for=None):
     token = env.get("TELEGRAM_BOT_TOKEN", "")
     chat_id = env.get("TELEGRAM_CHAT_ID", "")
     if not token or not chat_id or "your_" in token:
         print("[skip] Telegram chua cau hinh trong .env")
         return 0
     ok = 0
-    for msg in messages:
+    for idx, msg in enumerate(messages):
+        body = {"chat_id": chat_id, "text": msg, "disable_web_page_preview": True}
+        markup = markup_for(idx) if markup_for else None
+        if markup:
+            body["reply_markup"] = markup
         r = requests.post(
             f"https://api.telegram.org/bot{token}/sendMessage",
-            json={"chat_id": chat_id, "text": msg, "disable_web_page_preview": True},
+            json=body,
             timeout=15,
         )
         if r.ok:

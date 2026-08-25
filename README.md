@@ -21,7 +21,7 @@ Bot hiện tại đã đạt ~50% tiêu chuẩn một bot thông minh (tự đ�
 - [x] **Phần 1 — Tương tác hai chiều**: ra lệnh cho bot ngay trong Telegram (`/latest`, `/search`, `/market`, `/status`, `/fetch`) thay vì chỉ nhận tin một chiều
 - [x] **Phần 2 — AI làm giàu tin**: tóm tắt bài viết bằng LLM, tự phân loại chủ đề theo nội dung thay vì gắn cứng theo nguồn; tương thích mọi API chuẩn OpenAI (OpenAI, Ollama, LM Studio…)
 - [x] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng 0–100 cho từng tin (từ khóa, cụm nhiều nguồn cùng đăng, số liệu, ưu tiên nguồn, chống clickbait), chỉ đẩy tin đạt ngưỡng lên kênh
-- [ ] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của người dùng (mở/bỏ qua) để tinh chỉnh nội dung đẩy đi
+- [x] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của bạn (mở bài, bấm 👍/👎) để cộng/trừ điểm các tin cùng chuyên mục, nguồn và chủ đề từ khóa
 - [ ] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức, phát hiện xu hướng, alert khi chỉ số thị trường vượt ngưỡng
 - [ ] **Phần 6 — Kháng lỗi**: retry/backoff khi nguồn lỗi, health-check định kỳ, cảnh báo qua kênh khi nguồn chết
 
@@ -117,6 +117,31 @@ SEND_TOP_FALLBACK=3         # nếu không tin nào đạt ngưỡng, gửi top 
 
 Trên dashboard mỗi tin có huy hiệu điểm (đỏ ≥75, vàng ≥50); Telegram có lệnh `/top [số]` xem tin nóng nhất.
 
+### Cá nhân hóa (Phần 4 của roadmap)
+
+Bot **học từ chính bạn** để tinh chỉnh điểm nóng của tin mới:
+
+| Hành động của bạn | Tín hiệu |
+|---|---|
+| Bấm "đọc →" trên dashboard | `open` — thích nội dung này |
+| Bấm nút "−" trên dashboard | `down` — ít quan trọng với tôi |
+| Bấm 👍 trên tin Telegram | `open` |
+| Bấm 👎 trên tin Telegram | `down` |
+
+Mỗi tín hiệu điều chỉnh `profile.json`:
+
+- **Hệ số chuyên mục & nguồn**: nhân ×1.08 khi thích / ×0.92 khi chê, giới hạn trong [0.6–1.8] — một cú bấm không lật ngược hệ thống
+- **Trọng số từ khóa** tiêu đề trong khoảng −1…+1 — bot dần hiểu bạn thích đọc về "lãi suất", ghét "từ khóa nào đó"
+- Mỗi link chỉ tính mỗi loại tín hiệu một lần (chống spam)
+
+Điểm nóng sau đó được cộng/trừ tối đa ±21 điểm theo profile trước khi lọc ngưỡng đẩy kênh. Xem profile hiện tại qua `GET /api/profile` (chuyên mục/từ khóa đang được thích/ghét).
+
+```ini
+PERSONALIZE=1               # 0 = tắt cá nhân hóa, điểm nóng thuần heuristic
+```
+
+Lưu ý: nút 👍/👎 chỉ có trên Telegram (Discord không hỗ trợ inline keyboard ở chế độ bot đơn giản).
+
 ## Khởi động nhanh
 
 macOS — nhấp đúp là chạy:
@@ -164,10 +189,12 @@ bot/
 ├── telegram_bot.py      # lệnh hai chiều trên Telegram (roadmap phần 1)
 ├── ai_enrich.py         # tóm tắt + phân loại tin bằng LLM (roadmap phần 2)
 ├── ranking.py           # chấm điểm độ nóng 0-100, lọc tin đẩy kênh (roadmap phần 3)
+├── personalization.py   # học hành vi đọc, tinh chỉnh điểm theo profile (roadmap phần 4)
 ├── market_data.py       # số liệu chứng khoán, tỷ giá, vàng, dầu
 ├── templates/index.html # giao diện dashboard
 ├── sources.json         # danh sách nguồn RSS (thêm "priority": 1–3 để tăng điểm nguồn)
 ├── ranking_keywords.json # nhóm từ khóa quan trọng + trọng số (tự tạo lần chạy đầu)
+├── profile.json          # profile hành vi đọc của bạn (tự học, phần 4)
 ├── .env                 # token Telegram/Discord (không chia sẻ!)
 ├── news.txt             # bản tin lần chạy cuối
 ├── news.json            # kho tin cho dashboard
