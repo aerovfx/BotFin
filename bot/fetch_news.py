@@ -75,8 +75,10 @@ def fetch_feed(source):
 def format_item(item):
     cat = item.get("category", "")
     ai_tag = "[AI] " if item.get("ai_summary") else ""
+    score = item.get("score")
+    score_tag = f"[{'🔥' if score >= 70 else ''}{score}] " if score is not None else ""
     cat_tag = f"[{cat}] " if cat else ""
-    lines = [f"{ai_tag}{cat_tag}[{item['source']}] {item['title']}", item["link"]]
+    lines = [f"{score_tag}{ai_tag}{cat_tag}[{item['source']}] {item['title']}", item["link"]]
     summary = item.get("ai_summary") or item["summary"]
     if summary:
         lines.append(summary)

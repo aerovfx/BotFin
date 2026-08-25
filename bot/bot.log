@@ -583,3 +583,17 @@
 2026-08-25 09:02:37,251 [INFO] Tuoi Tre Kinh doanh: 3 tin moi
 2026-08-25 09:02:37,484 [INFO] Thanh Nien Kinh te: 9 tin moi
 2026-08-25 09:02:38,798 [INFO] 127.0.0.1 - - [25/Aug/2026 09:02:38] "GET /api/categories HTTP/1.1" 200 -
+2026-08-25 09:13:58,196 [INFO] Telegram commands: chua cau hinh token, o che doi cho
+2026-08-25 09:13:58,201 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8787
+2026-08-25 09:13:58,201 [INFO] [33mPress CTRL+C to quit[0m
+2026-08-25 09:14:00,620 [WARNING] Khong lay duoc XAUUSD=X: 404 Client Error: Not Found for url: https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD%3DX
+2026-08-25 09:14:01,700 [INFO] Cap nhat so lieu thi truong (5 chi so, 4 loai ngoai te)
+2026-08-25 09:14:01,955 [INFO] VnExpress Kinh doanh: 10 tin moi
+2026-08-25 09:14:02,007 [INFO] 127.0.0.1 - - [25/Aug/2026 09:14:02] "GET /api/news?limit=3&sort=top&min_score=0 HTTP/1.1" 200 -
+2026-08-25 09:15:24,307 [INFO] Telegram commands: chua cau hinh token, o che doi cho
+2026-08-25 09:15:24,314 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8787
+2026-08-25 09:15:24,314 [INFO] [33mPress CTRL+C to quit[0m
+2026-08-25 09:15:27,190 [WARNING] Khong lay duoc XAUUSD=X: 404 Client Error: Not Found for url: https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD%3DX
+2026-08-25 09:15:28,143 [INFO] 127.0.0.1 - - [25/Aug/2026 09:15:28] "GET /api/news?limit=3&sort=top HTTP/1.1" 200 -

@@ -20,7 +20,7 @@ Bot hiện tại đã đạt ~50% tiêu chuẩn một bot thông minh (tự đ�
 
 - [x] **Phần 1 — Tương tác hai chiều**: ra lệnh cho bot ngay trong Telegram (`/latest`, `/search`, `/market`, `/status`, `/fetch`) thay vì chỉ nhận tin một chiều
 - [x] **Phần 2 — AI làm giàu tin**: tóm tắt bài viết bằng LLM, tự phân loại chủ đề theo nội dung thay vì gắn cứng theo nguồn; tương thích mọi API chuẩn OpenAI (OpenAI, Ollama, LM Studio…)
-- [ ] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng từng tin, lọc chỉ gửi tin thực sự quan trọng
+- [x] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng 0–100 cho từng tin (từ khóa, cụm nhiều nguồn cùng đăng, số liệu, ưu tiên nguồn, chống clickbait), chỉ đẩy tin đạt ngưỡng lên kênh
 - [ ] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của người dùng (mở/bỏ qua) để tinh chỉnh nội dung đẩy đi
 - [ ] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức, phát hiện xu hướng, alert khi chỉ số thị trường vượt ngưỡng
 - [ ] **Phần 6 — Kháng lỗi**: retry/backoff khi nguồn lỗi, health-check định kỳ, cảnh báo qua kênh khi nguồn chết
@@ -68,6 +68,7 @@ Nhắn trực tiếp cho bot trong Telegram:
 | Lệnh | Chức năng |
 |---|---|
 | `/latest [số]` | tin mới nhất từ kho |
+| `/top [số]` | tin nóng nhất theo điểm xếp hạng |
 | `/search <từ khóa>` | tìm trong tiêu đề và tóm tắt |
 | `/market` | bảng chỉ số thị trường kèm mũi tên tăng/giảm |
 | `/status` | trạng thái hoạt động, chu kỳ, kênh gửi |
@@ -93,6 +94,28 @@ LLM_API_KEY=                # Ollama không cần key; OpenAI thì điền sk-..
 LLM_MODEL=gpt-4o-mini       # ví dụ Ollama: llama3.1
 AI_MAX_PER_RUN=20           # trần số tin gọi AI mỗi chu kỳ
 ```
+
+### Xếp hạng thông minh (Phần 3 của roadmap)
+
+Mỗi tin mới được chấm **điểm độ nóng 0–100** bằng tín hiệu thuần cục bộ (không cần LLM, không tốn phí):
+
+| Tín hiệu | Ảnh hưởng |
+|---|---|
+| Từ khóa quan trọng (lãi suất, GDP, nghị quyết, Fed…) | + tối đa 30 — sửa từ trong `ranking_keywords.json` |
+| Nhiều nguồn cùng đăng một chuyện (cụm tiêu đề tương tự) | +9 mỗi nguồn thêm, tối đa +27 |
+| Tiêu đề/tóm tắt có số liệu cụ thể (%) | +6 |
+| Nguồn ưu tiên (trường `"priority": 1–3` trong `sources.json`) | +4/bậc, tối đa +8 |
+| Tiêu đề câu view ("sốc", "chấn động"…) | −9 |
+
+Khi bật "Tự động đẩy tin", **chỉ tin đạt ngưỡng điểm mới được gửi** lên Telegram/Discord (`SCORE_SEND_MIN`, mặc định 38 — đã hiệu chỉnh trên ~500 tin thật: median toàn kho 22, tin đáng chú ý 40–50); nếu không tin nào đạt, gửi tối đa `SEND_TOP_FALLBACK` tin cao nhất để kênh không im lặng. Tin bị giữ lại vẫn nằm đầy đủ trên dashboard.
+
+```ini
+RANKING=1                   # 0 = tắt xếp hạng (gửi mọi tin)
+SCORE_SEND_MIN=38           # ngưỡng điểm để đẩy tin lên kênh
+SEND_TOP_FALLBACK=3         # nếu không tin nào đạt ngưỡng, gửi top N
+```
+
+Trên dashboard mỗi tin có huy hiệu điểm (đỏ ≥75, vàng ≥50); Telegram có lệnh `/top [số]` xem tin nóng nhất.
 
 ## Khởi động nhanh
 
@@ -140,9 +163,11 @@ bot/
 ├── fetch_news.py        # lõi thu thập tin RSS + gửi kênh
 ├── telegram_bot.py      # lệnh hai chiều trên Telegram (roadmap phần 1)
 ├── ai_enrich.py         # tóm tắt + phân loại tin bằng LLM (roadmap phần 2)
+├── ranking.py           # chấm điểm độ nóng 0-100, lọc tin đẩy kênh (roadmap phần 3)
 ├── market_data.py       # số liệu chứng khoán, tỷ giá, vàng, dầu
 ├── templates/index.html # giao diện dashboard
-├── sources.json         # danh sách nguồn RSS
+├── sources.json         # danh sách nguồn RSS (thêm "priority": 1–3 để tăng điểm nguồn)
+├── ranking_keywords.json # nhóm từ khóa quan trọng + trọng số (tự tạo lần chạy đầu)
 ├── .env                 # token Telegram/Discord (không chia sẻ!)
 ├── news.txt             # bản tin lần chạy cuối
 ├── news.json            # kho tin cho dashboard

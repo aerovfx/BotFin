@@ -7,6 +7,7 @@ from pathlib import Path
 import requests
 
 import fetch_news as fn
+import ranking as rk
 
 log = logging.getLogger("newsbot")
 
@@ -54,12 +55,20 @@ def cmd_help(_args):
     return (
         "BotFintech — lệnh hỗ trợ:\n"
         "/latest [số] — tin mới nhất (mặc định 5)\n"
+        "/top [số] — tin nóng nhất theo điểm xếp hạng\n"
         "/search <từ khóa> — tìm trong tiêu đề và tóm tắt\n"
         "/market — bảng chỉ số thị trường\n"
         "/status — trạng thái hoạt động của bot\n"
         "/sources — danh sách nguồn RSS\n"
         "/fetch — lấy tin mới ngay lập tức"
     )
+
+
+def _score_prefix(item):
+    score = item.get("score")
+    if score is None:
+        return ""
+    return f"[{'🔥' if score >= 70 else ''}{score}] "
 
 
 def cmd_latest(args):
@@ -76,9 +85,25 @@ def cmd_latest(args):
         prefix = f"[{stamp}] " if stamp else ""
         cat = item.get("category", "")
         cat_tag = f"[{cat}] " if cat else ""
-        items.append(f"{prefix}{cat_tag}[{item['source']}] {item['title']}\n{item['link']}")
+        items.append(f"{prefix}{_score_prefix(item)}{cat_tag}[{item['source']}] {item['title']}\n{item['link']}")
     chunk = "\n\n".join(items[-limit:])
     return f"{min(limit, len(items))} tin mới nhất:\n\n{chunk}"
+
+
+def cmd_top(args):
+    news = [i for i in load_news() if i.get("score") is not None]
+    if not news:
+        return "Chưa có tin nào được chấm điểm. Chờ chu kỳ lấy tin kế tiếp."
+    try:
+        limit = max(1, min(int(args[0]), 10)) if args else 5
+    except ValueError:
+        limit = 5
+    top = sorted(news, key=lambda i: i.get("score", 0), reverse=True)[:limit]
+    body = "\n\n".join(
+        f"[🔥{i['score']}] [{i.get('category', 'Khác')}] [{i['source']}] {i['title']}\n{i['link']}"
+        for i in top
+    )
+    return f"Top {len(top)} tin nóng:\n\n{body}"
 
 
 def cmd_search(args):
@@ -131,6 +156,7 @@ def cmd_status(_args):
         f"- Nguồn RSS: {len(fn.load_json(fn.SOURCES_FILE, []))}",
         f"- Tin trong kho: {len(load_news())}",
         f"- Số lần chạy: {stats.get('runs', 0)} | lần cuối: {fmt_time(stats.get('last_run', '')) or '-'}",
+        f"- Xếp hạng lần cuối: đẩy {stats.get('last_push', '-')} / giữ {stats.get('last_held', '-')} | điểm cao nhất: {stats.get('last_top_score', '-')}",
     ]
     return "\n".join(lines)
 
@@ -160,6 +186,7 @@ COMMANDS = {
     "start": cmd_help,
     "help": cmd_help,
     "latest": cmd_latest,
+    "top": cmd_top,
     "search": cmd_search,
     "market": cmd_market,
     "status": cmd_status,

@@ -1,0 +1,122 @@
+{
+  "groups": [
+    {
+      "words": [
+        "lãi suất",
+        "lãi xuất",
+        "tỷ giá",
+        "lạm phát",
+        "cpi",
+        "gdp",
+        "dự trữ ngoại hối",
+        "nới lỏng",
+        "thắt chặt",
+        "tiền tệ"
+      ],
+      "weight": 18
+    },
+    {
+      "words": [
+        "nghị quyết",
+        "quốc hội",
+        "chính phủ",
+        "thủ tướng",
+        "bộ trưởng",
+        "luật",
+        "nghị định",
+        "thông tư",
+        "pháp lệnh",
+        "bầu cử",
+        "tổng thống",
+        "ngoại giao"
+      ],
+      "weight": 14
+    },
+    {
+      "words": [
+        "fed",
+        "ecb",
+        "imf",
+        "world bank",
+        "wto",
+        "opec",
+        "khủng hoảng",
+        "suy thoái",
+        "phá sản",
+        "mặc nợ",
+        "sụp đổ",
+        "cấm vận"
+      ],
+      "weight": 16
+    },
+    {
+      "words": [
+        "vn-index",
+        "vn30",
+        "hnx",
+        "phiên",
+        "thanh khoản",
+        "khớp lệnh",
+        "khối ngoại",
+        "cổ phiếu",
+        "cổ tức",
+        "ipo",
+        "thoái vốn",
+        "sáp nhập",
+        "báo cáo tài chính",
+        "lợi nhuận"
+      ],
+      "weight": 10
+    },
+    {
+      "words": [
+        "vàng",
+        "dầu thô",
+        "xăng dầu",
+        "giá điện",
+        "than đá",
+        "hàng hóa"
+      ],
+      "weight": 8
+    },
+    {
+      "words": [
+        "tuyển sinh",
+        "kỳ thi",
+        "điểm chuẩn",
+        "học phí",
+        "goodwill",
+        "du học",
+        "giáo dục"
+      ],
+      "weight": 10
+    }
+  ],
+  "clickbait": [
+    "sốc",
+    "shock",
+    "chấn động",
+    "gây bão",
+    "không thể tin",
+    "đáng sợ",
+    "hoảng loạn"
+  ],
+  "stopwords": [
+    "và",
+    "của",
+    "có",
+    "cho",
+    "với",
+    "trong",
+    "ra",
+    "the",
+    "một",
+    "các",
+    "những",
+    "được",
+    "là",
+    "đã",
+    "sẽ",
+    "bị"
+  ]
+}

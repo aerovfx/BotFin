@@ -11,6 +11,7 @@ from flask import Flask, jsonify, render_template, request
 import ai_enrich
 import fetch_news as fn
 import market_data as md
+import ranking
 import telegram_bot as tb
 
 BASE = Path(__file__).parent
@@ -161,16 +162,25 @@ def run_fetch(limit_per_source=10):
     new_items, ai_stats = ai_enrich.enrich(new_items)
     if ai_stats.get("enabled"):
         log.info("AI enrich: %s", ai_enrich.status_line(ai_stats))
+    ranking.score_items(new_items)
+    hot = [i for i in new_items if i.get("score", 0) >= ranking.config()["send_min"]]
+    stats["last_push"] = len(hot)
+    stats["last_held"] = len(new_items) - len(hot)
+    stats["last_top_score"] = max((i.get("score", 0) for i in new_items), default=0)
     fn.save_news_file(new_items)
     append_news(new_items)
     stats["total_fetched"] = stats.get("total_fetched", 0) + len(new_items)
     save_store(STATS_FILE, stats)
 
-    messages = [fn.format_item(i) for i in new_items]
+    to_push, held_back = ranking.split_for_send(new_items)
+    result["push"] = len(to_push)
+    result["held"] = len(held_back)
+    messages = [fn.format_item(i) for i in to_push]
+    held_note = f" (giữ lại {len(held_back)} tin ít quan trọng)" if held_back else ""
     for kind in ("telegram", "discord"):
         if get_auto_send() and channel_ready(kind):
             sent = (fn.send_telegram if kind == "telegram" else fn.send_discord)(get_env(), messages)
-            result[kind] = f"đã gửi {sent}/{len(messages)}"
+            result[kind] = f"đã gửi {sent}/{len(messages)}{held_note}"
         elif get_auto_send():
             result[kind] = "chưa cấu hình kênh"
         else:
@@ -261,6 +271,11 @@ def api_news():
         limit = min(int(request.args.get("limit", "60")), NEWS_KEEP)
     except ValueError:
         limit = 60
+    try:
+        min_score = max(0, int(request.args.get("min_score", "0")))
+    except ValueError:
+        min_score = 0
+    sort = request.args.get("sort", "")
     items = []
     for item in reversed(news):
         if source and item.get("source") != source:
@@ -269,9 +284,13 @@ def api_news():
             continue
         if q and q not in item.get("title", "").lower() and q not in item.get("summary", "").lower():
             continue
+        if min_score and item.get("score", 0) < min_score:
+            continue
         items.append(item)
         if len(items) >= limit:
             break
+    if sort == "top":
+        items.sort(key=lambda i: i.get("score", 0), reverse=True)
     return jsonify({"items": items})
 
 
