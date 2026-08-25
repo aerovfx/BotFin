@@ -49,8 +49,24 @@ def clean_html(text):
     return re.sub(r"\s+", " ", text)
 
 
+def _get_with_retry(url, attempts=3, base_delay=1.0):
+    """GET với retry + backoff cho lỗi mạng và HTTP 5xx. 4xx không thử lại."""
+    last_exc = None
+    for attempt in range(attempts):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=(5, 10))
+            if resp.status_code >= 500:
+                raise requests.HTTPError(f"HTTP {resp.status_code}")
+            return resp
+        except requests.RequestException as exc:
+            last_exc = exc
+            if attempt < attempts - 1:
+                time.sleep(base_delay * (attempt + 1))
+    raise last_exc
+
+
 def fetch_feed(source):
-    resp = requests.get(source["url"], headers=HEADERS, timeout=15)
+    resp = _get_with_retry(source["url"])
     resp.raise_for_status()
     parsed = feedparser.parse(resp.content)
     category = source.get("category", "Khác")

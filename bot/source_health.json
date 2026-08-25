@@ -1,0 +1,42 @@
+{
+ "VnExpress Kinh doanh": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:24"
+ },
+ "Tuoi Tre Kinh doanh": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:24"
+ },
+ "Thanh Nien Kinh te": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:24"
+ },
+ "VietnamNet Kinh doanh": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:26"
+ },
+ "Tien Phong Kinh te": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:24"
+ },
+ "CafeF": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:25"
+ },
+ "CafeF Thi truong chung khoan": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:25"
+ },
+ "CafeF Tai chinh quoc te": {
+  "consecutive_failures": 0,
+  "was_dead": false,
+  "last_ok": "2026-08-25 10:10:26"
+ }
+}

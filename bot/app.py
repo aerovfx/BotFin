@@ -14,6 +14,7 @@ import fetch_news as fn
 import market_data as md
 import personalization as ps
 import ranking
+import resilience as rz
 import telegram_bot as tb
 
 BASE = Path(__file__).parent
@@ -126,20 +127,26 @@ def backfill_display():
     log.info("Backfill hien thi %d tin", len(collected))
 
 
+def push_channel_messages(messages):
+    """Đẩy danh sách message qua mọi kênh đã cấu hình khi auto-send bật."""
+    for kind in ("telegram", "discord"):
+        if get_auto_send() and channel_ready(kind):
+            sender = fn.send_telegram if kind == "telegram" else fn.send_discord
+            sender(get_env(), messages)
+
+
 def run_fetch(limit_per_source=10):
     state = fn.load_json(fn.STATE_FILE, {})
     sources = fn.load_json(fn.SOURCES_FILE, [])
     new_items, errors, ok_sources = [], [], 0
+    src_events = []
 
     snapshot = md.update_market()
     alerts = analysis.check_alerts(snapshot or md.load_market())
     if alerts:
         analysis.append_history(alerts)
         log.warning("Alert thi truong: %s", ", ".join(a["rule"] for a in alerts))
-        if get_auto_send() and channel_ready("telegram"):
-            fn.send_telegram(get_env(), [a["message"] for a in alerts])
-        if get_auto_send() and channel_ready("discord"):
-            fn.send_discord(get_env(), [a["message"] for a in alerts])
+        push_channel_messages([a["message"] for a in alerts])
 
     for source in sources:
         try:
@@ -147,9 +154,11 @@ def run_fetch(limit_per_source=10):
             fresh = [i for i in fetched if i["link"] not in state][:limit_per_source]
             new_items.extend(fresh)
             ok_sources += 1
+            src_events += rz.note(source["name"], True)
             log.info("%s: %d tin moi", source["name"], len(fresh))
         except Exception as exc:
             errors.append(f"{source['name']}: {exc}")
+            src_events += rz.note(source["name"], False, exc)
             log.error("%s: %s", source["name"], exc)
 
     stats = load_store(STATS_FILE, {"runs": 0, "total_fetched": 0})
@@ -190,6 +199,9 @@ def run_fetch(limit_per_source=10):
     to_push, held_back = ranking.split_for_send(new_items)
     result["push"] = len(to_push)
     result["held"] = len(held_back)
+    if src_events:
+        rz.handle_events(src_events, sender=push_channel_messages)
+        stats["source_events"] = [e["type"] + ":" + e["name"] for e in src_events][-10:]
     links = [i["link"] for i in to_push]
     messages = [fn.format_item(i) for i in to_push]
     markup_for = (lambda idx: ps.vote_markup(links[idx])) if ps.config()["enabled"] else None
@@ -254,6 +266,7 @@ def api_status():
         "last_run": last_run or "",
         "next_run": next_run,
         "last_new": stats.get("last_new", "-"),
+        "sources_dead": len(rz.dead_names()),
         "today_fetched": sum(1 for i in news if i.get("fetched_at", "").startswith(datetime.now().strftime("%Y-%m-%d"))),
     })
 
@@ -455,6 +468,11 @@ def api_alerts():
     return jsonify({"history": fn.load_json(fn.BASE / "alert_history.json", [])[-20:]})
 
 
+@app.route("/api/health")
+def api_health():
+    return jsonify({"sources": rz.snapshot()})
+
+
 @app.route("/api/logs")
 def api_logs():
     try:
@@ -471,6 +489,7 @@ if __name__ == "__main__":
     if not md.load_market():
         md.update_market()
     threading.Thread(target=worker, daemon=True).start()
+    threading.Thread(target=rz.health_worker, kwargs={"sender": push_channel_messages}, daemon=True).start()
     threading.Thread(target=tb.polling_worker, kwargs={"fetch_callback": trigger_fetch}, daemon=True).start()
     print("\n  Bot Tin Tức Tổng Hợp đang chạy.")
     print("  Mở trình duyệt và truy cập:  http://127.0.0.1:8787")

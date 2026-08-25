@@ -10,6 +10,7 @@ import analysis
 import fetch_news as fn
 import personalization as pers
 import ranking as rk
+import resilience as rz
 
 log = logging.getLogger("newsbot")
 
@@ -151,16 +152,19 @@ def cmd_status(_args):
     auto = env.get("AUTO_SEND", "0") == "1"
     tg_ok = bool(env.get("TELEGRAM_BOT_TOKEN")) and "your_" not in env.get("TELEGRAM_BOT_TOKEN", "")
     dc_ok = bool(env.get("DISCORD_BOT_TOKEN")) and "your_" not in env.get("DISCORD_BOT_TOKEN", "")
+    dead = rz.dead_names()
     lines = [
         "Trạng thái BotFintech:",
         f"- Chu kỳ lấy tin: {interval} phút",
         f"- Tự động đẩy tin: {'bật' if auto else 'tắt (Safe Mode)'}",
         f"- Telegram: {'sẵn sàng' if tg_ok else 'chưa cấu hình'} | Discord: {'sẵn sàng' if dc_ok else 'chưa cấu hình'}",
-        f"- Nguồn RSS: {len(fn.load_json(fn.SOURCES_FILE, []))}",
+        f"- Nguồn RSS: {len(fn.load_json(fn.SOURCES_FILE, []))}" + (f" | chết: {len(dead)}" if dead else " | tất cả sống"),
         f"- Tin trong kho: {len(load_news())}",
         f"- Số lần chạy: {stats.get('runs', 0)} | lần cuối: {fmt_time(stats.get('last_run', '')) or '-'}",
         f"- Xếp hạng lần cuối: đẩy {stats.get('last_push', '-')} / giữ {stats.get('last_held', '-')} | điểm cao nhất: {stats.get('last_top_score', '-')}",
     ]
+    if dead:
+        lines.append(f"⚠️ Nguồn chết: {', '.join(dead[:5])}")
     return "\n".join(lines)
 
 

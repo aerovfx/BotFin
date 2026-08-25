@@ -370,16 +370,22 @@ async function runFetch(){
 async function loadSources(){
   try{
     const d=await api("/api/sources");
+    let health={};
+    try{const h=await api("/api/health");h.sources.forEach(x=>health[x.name]=x)}catch(e){}
     const sel=$("selSource");
     sel.innerHTML='<option value="">Tất cả nguồn</option>';
     d.sources.forEach(s=>{const o=document.createElement("option");o.value=s.name;o.textContent=s.name;sel.appendChild(o)});
-    $("srcList").innerHTML=d.sources.map((s,i)=>`
+    $("srcList").innerHTML=d.sources.map((s,i)=>{
+      const st=(health[s.name]||{}).state||"unknown";
+      const dot={ok:"🟢",degraded:"🟡",dead:"🔴",unknown:"⚪"}[st];
+      const tip=health[s.name]&&health[s.name].last_error?` title="${esc(health[s.name].last_error)}"`:"";
+      return `
       <div class="src-row">
         <span class="badge cat ${catBadgeClass(s.category||'Khác')}">${esc(s.category||'Khác')}</span>
-        <span class="n">${esc(s.name)}</span>
+        <span class="n">${esc(s.name)}<span${tip}> ${dot}</span></span>
         <span class="u">${esc(s.url)}</span>
         <button class="btn small danger" onclick="delSource(${i})">✕</button>
-      </div>`).join("")||'<div class="empty">Chưa có nguồn nào</div>';
+      </div>`}).join("")||'<div class="empty">Chưa có nguồn nào</div>';
   }catch(e){}
 }
 async function addSource(){

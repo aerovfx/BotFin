@@ -23,7 +23,7 @@ Bot hiện tại đã đạt ~50% tiêu chuẩn một bot thông minh (tự đ�
 - [x] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng 0–100 cho từng tin (từ khóa, cụm nhiều nguồn cùng đăng, số liệu, ưu tiên nguồn, chống clickbait), chỉ đẩy tin đạt ngưỡng lên kênh
 - [x] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của bạn (mở bài, bấm 👍/👎) để cộng/trừ điểm các tin cùng chuyên mục, nguồn và chủ đề từ khóa
 - [x] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức từ điển tiếng Việt, phát hiện chủ đề đang nóng (nhiều nguồn cùng đăng), alert tự động khi chỉ số thị trường vượt ngưỡng
-- [ ] **Phần 6 — Kháng lỗi**: retry/backoff khi nguồn lỗi, health-check định kỳ, cảnh báo qua kênh khi nguồn chết
+- [x] **Phần 6 — Kháng lỗi**: retry/backoff khi nguồn lỗi, health-check định kỳ chạy nền, cảnh báo kênh khi nguồn chết và khi hồi phục
 
 ## Tính năng nổi bật
 
@@ -170,6 +170,20 @@ ALERTS=1                    # 0 = tắt cảnh báo thị trường
 ALERT_COOLDOWN_MINUTES=90   # nghỉ giữa hai lần alert cùng rule
 ```
 
+### Kháng lỗi (Phần 6 của roadmap)
+
+**Retry + backoff khi lấy tin** — nguồn chậm/chập chờn được thử lại tối đa 3 lần (nghỉ 1s, 2s giữa các lần); lỗi mạng và HTTP 5xx được thử lại, 4xx không. Một nguồn chết không cản các nguồn khác.
+
+**Health-check định kỳ** — thread nền probe nhẹ từng nguồn mỗi `HEALTH_CHECK_MINUTES` phút (mặc định 20), không phụ thuộc chu kỳ lấy tin. Trạng thái lưu tại `source_health.json`, hiển thị trên dashboard bằng chấm màu: 🟢 ổn / 🟡 có dấu hiệu lỗi / 🔴 chết / ⚪ chưa kiểm tra.
+
+**Cảnh báo nguồn chết / hồi phục** — nguồn lỗi liên tiếp `SOURCE_FAILURE_THRESHOLD` lần (mặc định 3) → gửi ⚠️ lên Telegram/Discord đúng một lần kèm nội dung lỗi; khi nguồn sống lại → gửi ✅. Lệnh `/status` trên Telegram cũng liệt kê nguồn đang chết.
+
+```ini
+RESILIENCE=1                # 0 = tắt hoàn toàn health-check + cảnh báo nguồn
+HEALTH_CHECK_MINUTES=20     # chu kỳ health-check chạy nền
+SOURCE_FAILURE_THRESHOLD=3  # số lỗi liên tiếp trước khi tuyên bố nguồn chết
+```
+
 ## Khởi động nhanh
 
 macOS — nhấp đúp là chạy:
@@ -219,12 +233,14 @@ bot/
 ├── ranking.py           # chấm điểm độ nóng 0-100, lọc tin đẩy kênh (roadmap phần 3)
 ├── personalization.py   # học hành vi đọc, tinh chỉnh điểm theo profile (roadmap phần 4)
 ├── analysis.py          # sentiment + xu hướng + alert thị trường (roadmap phần 5)
+├── resilience.py        # retry/backoff, health-check, cảnh báo nguồn chết (roadmap phần 6)
 ├── market_data.py       # số liệu chứng khoán, tỷ giá, vàng, dầu
 ├── templates/index.html # giao diện dashboard
 ├── sources.json         # danh sách nguồn RSS (thêm "priority": 1–3 để tăng điểm nguồn)
 ├── ranking_keywords.json # nhóm từ khóa quan trọng + trọng số (tự tạo lần chạy đầu)
 ├── profile.json          # profile hành vi đọc của bạn (tự học, phần 4)
 ├── alerts.json           # ngưỡng cảnh báo thị trường (phần 5, sửa được)
+├── source_health.json    # sức khỏe từng nguồn RSS (phần 6)
 ├── .env                 # token Telegram/Discord (không chia sẻ!)
 ├── news.txt             # bản tin lần chạy cuối
 ├── news.json            # kho tin cho dashboard
