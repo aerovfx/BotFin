@@ -1,6 +1,16 @@
-# Kinh Tế Bot
+# BotFintech
 
-Bot tin tức kinh tế Việt Nam chạy cục bộ trên máy bạn — tự động thu thập tin từ các báo lớn, theo dõi số liệu thị trường, và đẩy tin mới lên Telegram/Discord. Đi kèm dashboard web phong cách trading để điều khiển bằng nút bấm, không cần gõ lệnh.
+**BotFintech** — nền tảng bot tin tức chạy cục bộ trên máy bạn: tự động thu thập tin từ các báo lớn, theo dõi số liệu thị trường, và đẩy tin mới lên Telegram/Discord. Đi kèm dashboard web phong cách trading để điều khiển bằng nút bấm, không cần gõ lệnh.
+
+## Tầm nhìn BotFintech
+
+BotFintech là nền tảng thu thập – làm sạch – phân phối này sẽ mở rộng sang nhiều lĩnh vực khác:
+
+- **Giáo dục** — bot tin tức giáo dục: tuyển sinh, chính sách học đường, kỳ thi, học bổng; theo dõi lịch thi và điểm chuẩn
+- **Chính trị** — bot tin tức chính trị – xã hội: nghị quyết, chính sách mới, hoạt động của Quốc hội và chính quyền địa phương
+- Và các lĩnh vực khác khi nền tảng trưởng thành (y tế, thể thao, công nghệ…)
+
+Mỗi lĩnh vực chỉ cần thay bộ nguồn RSS, bộ chỉ số theo dõi và kênh phân phối — kiến trúc lõi không đổi.
 
 ## Tính năng nổi bật
 
