@@ -65,11 +65,18 @@ def get_auto_send():
     return env_value("AUTO_SEND", "0") == "1"
 
 
+def valid_chat_id(value):
+    """Chat ID Telegram phải là số (có thể âm với nhóm/channel)."""
+    return bool(value) and value.lstrip("-").isdigit() and value not in ("-", "--")
+
+
 def channel_ready(kind):
     env = get_env()
     if kind == "telegram":
         token = env.get("TELEGRAM_BOT_TOKEN", "")
         chat = env.get("TELEGRAM_CHAT_ID", "")
+        if not valid_chat_id(chat):
+            return False
     else:
         token = env.get("DISCORD_BOT_TOKEN", "")
         chat = env.get("DISCORD_CHANNEL_ID", "")
@@ -408,22 +415,45 @@ def api_settings():
     return jsonify({"ok": True})
 
 
+TG_ERROR_HINTS = {
+    "chat not found": "Bot không nhắn được tới chat này. Hãy mở Telegram, tìm bot của bạn và gửi /start (bot không thể chủ động nhắn trước), rồi bấm Test lại. Nếu vẫn lỗi, kiểm tra Chat ID.",
+    "unauthorized": "Token không hợp lệ hoặc đã bị thu hồi. Lấy token mới từ @BotFather.",
+    "bot was blocked": "Bạn đã chặn bot này trong Telegram. Mở chat với bot và chọn Unblock, sau đó gửi /start.",
+    "chat_id is empty": "Chưa điền Chat ID.",
+}
+
+
+def tg_hint(response_text):
+    low = (response_text or "").lower()
+    for key, hint in TG_ERROR_HINTS.items():
+        if key in low:
+            return hint
+    return response_text
+
+
 @app.route("/api/test/<kind>", methods=["POST"])
 def api_test(kind):
     if kind not in ("telegram", "discord"):
         return jsonify({"error": "Kênh không hợp lệ"}), 404
     if not channel_ready(kind):
-        return jsonify({"ok": False, "detail": "Chưa cấu hình token/ID cho kênh này"}), 400
+        detail = "Chưa cấu hình token/ID cho kênh này"
+        if kind == "telegram":
+            env = get_env()
+            chat = env.get("TELEGRAM_CHAT_ID", "").strip()
+            if chat and not valid_chat_id(chat):
+                detail = "Chat ID phải là số (ví dụ 3796415380, hoặc -100… với nhóm/channel)"
+        return jsonify({"ok": False, "detail": detail}), 400
     text = f"[Kiểm tra] Bot tin tức hoạt động bình thường - {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}"
     env = get_env()
     if kind == "telegram":
         r = requests.post(
             f"https://api.telegram.org/bot{env['TELEGRAM_BOT_TOKEN']}/sendMessage",
-            json={"chat_id": env["TELEGRAM_CHAT_ID"], "text": text},
+            json={"chat_id": env['TELEGRAM_CHAT_ID'], "text": text},
             timeout=15,
         )
         ok = r.ok and r.json().get("ok", False)
-        detail = "" if ok else r.text[:200]
+        raw = r.text[:200]
+        detail = "" if ok else tg_hint(raw)
     else:
         r = requests.post(
             f"https://discord.com/api/v10/channels/{env['DISCORD_CHANNEL_ID']}/messages",

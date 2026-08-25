@@ -1,0 +1,20 @@
+# Secrets / key
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Dữ liệu chạy thời gian thực (sinh tự động)
+bot/news.json
+bot/seen.json
+bot/market.json
+bot/stats.json
+bot/bot.log
+bot/alert_state.json
+bot/source_health.json
+bot/profile.json
+bot/ai_cache.json

@@ -214,6 +214,11 @@ AUTO_SEND=0                 # 1 = tự động đẩy tin khi có tin mới
 
 Điền trực tiếp trong `.env` hoặc nhập qua dashboard (khuyên dùng — token bị che khi hiển thị).
 
+> **Lỗi "chat not found" khi Test Telegram?** Telegram không cho bot chủ động nhắn trước:
+> hãy mở Telegram, tìm bot của bạn, nhấn **Start** (gửi `/start`), rồi bấm Test lại.
+> Nếu Chat ID cũ đã hỏng, bot tự gán lại cho người vừa nhắn `/start` và ghi vào `.env`.
+> Chat ID phải là số (ví dụ `3796415380`, hoặc `-100…` với nhóm/channel).
+
 ### Chế độ dòng lệnh (không cần dashboard)
 
 ```bash

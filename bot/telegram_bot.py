@@ -267,6 +267,17 @@ def handle_callback(token, env, cb):
         log.warning("editMessageReplyMarkup: %s", exc)
 
 
+def configured_chat_alive(token, configured):
+    """Chat ID đã lưu còn dùng được không? False = hỏng (chưa Start / sai ID)."""
+    if not configured or not str(configured).lstrip("-").isdigit():
+        return False
+    try:
+        _api(token, "getChat", chat_id=configured)
+        return True
+    except Exception:
+        return False
+
+
 def handle_update(token, env, update, fetch_callback):
     cb = update.get("callback_query")
     if cb:
@@ -278,8 +289,15 @@ def handle_update(token, env, update, fetch_callback):
     if not chat_id or not text.startswith("/"):
         return
     if not allowed_chat(env, chat_id):
-        log.warning("Telegram: bo qua tin tu chat khong hop le (%s)", str(chat_id)[-4:])
-        return
+        configured = env.get("TELEGRAM_CHAT_ID", "").strip()
+        if configured_chat_alive(token, configured):
+            log.warning("Telegram: bo qua tin tu chat khong hop le (%s)", str(chat_id)[-4:])
+            return
+        # Chat ID đã lưu hỏng → tự gán cho người đang nhắn /start cho bot
+        log.warning("Telegram: chat ID cu khong dung duoc, gan lai cho chat ...%s",
+                    str(chat_id)[-4:])
+        bind_chat(env, chat_id)
+        env = fn.load_env(fn.ENV_FILE)
 
     parts = text.split(maxsplit=1)
     command = parts[0].lstrip("/").split("@")[0].lower()

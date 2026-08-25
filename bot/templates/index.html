@@ -41,6 +41,8 @@ header{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var
 .btn:disabled{opacity:.45;cursor:not-allowed}
 
 .ticker{display:flex;gap:10px;overflow-x:auto;padding:11px 14px;background:var(--panel);border:1px solid var(--border);border-radius:16px;margin-bottom:14px}
+.card .ticker{flex-wrap:wrap;overflow-x:visible;border:none;background:none;padding:0;margin-bottom:0}
+.card .ticker .tk{min-width:calc(50% - 10px)}
 .tk{min-width:128px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:11px;flex-shrink:0}
 .tk .s{font-size:9.5px;color:var(--muted);font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
 .tk .v{font-size:16px;font-weight:700;margin-top:2px;white-space:nowrap}
@@ -152,7 +154,6 @@ footer{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.06e
     <button id="btnFetch" class="btn primary" onclick="runFetch()">⟳ Lấy tin ngay</button>
   </header>
 
-  <div class="ticker" id="mktTicker"><span style="color:var(--muted);font-size:12px">Đang tải số liệu thị trường…</span></div>
   <div id="trendRow"></div>
 
   <div class="stats">
@@ -221,6 +222,11 @@ footer{text-align:center;color:var(--muted);font-size:10.5px;letter-spacing:.06e
         <h2>Nhật ký hệ thống</h2>
         <pre id="logBox">Đang tải…</pre>
         <div class="row" style="margin:10px 0 0"><button class="btn small" onclick="loadLogs()">↻ Làm mới</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Chỉ số thị trường</h2>
+        <div class="ticker" id="mktTicker"><span style="color:var(--muted);font-size:12px">Đang tải số liệu thị trường…</span></div>
       </div>
     </div>
   </div>

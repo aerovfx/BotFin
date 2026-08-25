@@ -121,7 +121,11 @@ def send_telegram(env, messages, markup_for=None):
         if r.ok:
             ok += 1
         else:
-            print(f"[telegram] loi {r.status_code}: {r.text[:200]}", file=sys.stderr)
+            body = r.text[:200]
+            if "chat not found" in r.text.lower():
+                body += (" — Hãy mở Telegram, tìm bot và gửi /start cho bot "
+                         "(bot không thể chủ động nhắn trước), rồi kiểm tra lại Chat ID")
+            print(f"[telegram] loi {r.status_code}: {body}", file=sys.stderr)
         time.sleep(0.5)
     print(f"[telegram] da gui {ok}/{len(messages)} tin")
     return ok
