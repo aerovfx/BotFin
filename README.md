@@ -14,6 +14,17 @@ BotFintech là nền tảng thu thập – làm sạch – phân phối này s�
 
 Mỗi lĩnh vực chỉ cần thay bộ nguồn RSS, bộ chỉ số theo dõi và kênh phân phối — kiến trúc lõi không đổi.
 
+## Roadmap: từ bot tự động đến bot thông minh
+
+Bot hiện tại đã đạt ~50% tiêu chuẩn một bot thông minh (tự động hóa, đa nguồn, chống trùng, đa kênh, dashboard, safe mode). Lộ trình bổ sung nửa còn lại:
+
+- [x] **Phần 1 — Tương tác hai chiều**: ra lệnh cho bot ngay trong Telegram (`/latest`, `/search`, `/market`, `/status`, `/fetch`) thay vì chỉ nhận tin một chiều
+- [ ] **Phần 2 — AI làm giàu tin**: tóm tắt bài viết bằng LLM, tự phân loại chủ đề thay vì gắn cứng theo nguồn
+- [ ] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng từng tin, lọc chỉ gửi tin thực sự quan trọng
+- [ ] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của người dùng (mở/bỏ qua) để tinh chỉnh nội dung đẩy đi
+- [ ] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức, phát hiện xu hướng, alert khi chỉ số thị trường vượt ngưỡng
+- [ ] **Phần 6 — Kháng lỗi**: retry/backoff khi nguồn lỗi, health-check định kỳ, cảnh báo qua kênh khi nguồn chết
+
 ## Tính năng nổi bật
 
 ### Thu thập tin tự động
@@ -49,6 +60,21 @@ Xanh lá = tăng, đỏ = giảm, hiển thị ngay trên thanh ticker đầu tr
 - **Telegram** và **Discord** — dùng một hoặc cả hai
 - **Safe Mode mặc định**: bot chỉ thu thập và lưu tin; bật công tắc "Tự động đẩy tin" khi sẵn sàng
 - Gửi tin kiểm tra trước khi bật thật để chắc chắn cấu hình đúng
+
+### Lệnh Telegram hai chiều (Phần 1 của roadmap)
+
+Nhắn trực tiếp cho bot trong Telegram:
+
+| Lệnh | Chức năng |
+|---|---|
+| `/latest [số]` | tin mới nhất từ kho |
+| `/search <từ khóa>` | tìm trong tiêu đề và tóm tắt |
+| `/market` | bảng chỉ số thị trường kèm mũi tên tăng/giảm |
+| `/status` | trạng thái hoạt động, chu kỳ, kênh gửi |
+| `/sources` | danh sách nguồn RSS |
+| `/fetch` | lấy tin mới ngay lập tức |
+
+Chỉ chat ID đã cấu hình mới ra lệnh được bot; nếu `.env` chưa có `TELEGRAM_CHAT_ID`, người nhắn đầu tiên sẽ tự được ghi nhận.
 
 ## Khởi động nhanh
 
@@ -94,6 +120,7 @@ bot/
 ├── start.command        # nhấp đúp để khởi động (macOS)
 ├── app.py               # server dashboard + vòng lặp tự động
 ├── fetch_news.py        # lõi thu thập tin RSS + gửi kênh
+├── telegram_bot.py      # lệnh hai chiều trên Telegram (roadmap phần 1)
 ├── market_data.py       # số liệu chứng khoán, tỷ giá, vàng, dầu
 ├── templates/index.html # giao diện dashboard
 ├── sources.json         # danh sách nguồn RSS

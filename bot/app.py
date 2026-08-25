@@ -10,6 +10,7 @@ from flask import Flask, jsonify, render_template, request
 
 import fetch_news as fn
 import market_data as md
+import telegram_bot as tb
 
 BASE = Path(__file__).parent
 NEWS_STORE = BASE / "news.json"
@@ -224,15 +225,21 @@ def api_status():
     })
 
 
-@app.route("/api/fetch", methods=["POST"])
-def api_fetch():
+def trigger_fetch():
     if not fetch_lock.acquire(blocking=False):
-        return jsonify({"error": "Đang có phiên lấy tin chạy, thử lại sau"}), 409
+        return {"error": "Đang có phiên lấy tin chạy, thử lại sau"}
     try:
-        result = run_fetch()
-        return jsonify(result)
+        return run_fetch()
     finally:
         fetch_lock.release()
+
+
+@app.route("/api/fetch", methods=["POST"])
+def api_fetch():
+    result = trigger_fetch()
+    if "error" in result:
+        return jsonify(result), 409
+    return jsonify(result)
 
 
 @app.route("/api/market")
@@ -391,6 +398,8 @@ if __name__ == "__main__":
     if not md.load_market():
         md.update_market()
     threading.Thread(target=worker, daemon=True).start()
+    threading.Thread(target=tb.polling_worker, kwargs={"fetch_callback": trigger_fetch}, daemon=True).start()
     print("\n  Bot Tin Tức Tổng Hợp đang chạy.")
-    print("  Mở trình duyệt và truy cập:  http://127.0.0.1:8787\n")
+    print("  Mở trình duyệt và truy cập:  http://127.0.0.1:8787")
+    print("  Lệnh Telegram: /latest /search /market /status /sources /fetch\n")
     app.run(host="127.0.0.1", port=8787, debug=False)

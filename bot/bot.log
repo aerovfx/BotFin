@@ -560,3 +560,16 @@
 2026-08-24 22:30:24,631 [INFO] Thanh Nien Gioi tre: 10 tin moi
 2026-08-24 22:30:24,894 [INFO] Kenh14: 0 tin moi
 2026-08-24 22:30:24,957 [ERROR] Dan Tri: 404 Client Error: Not Found for url: https://dantri.com.vn/home.rss
+2026-08-25 08:52:45,070 [INFO] Telegram commands: chua cau hinh token, o che doi cho
+2026-08-25 08:52:45,078 [INFO] [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8787
+2026-08-25 08:52:45,078 [INFO] [33mPress CTRL+C to quit[0m
+2026-08-25 08:52:46,094 [WARNING] Khong lay duoc XAUUSD=X: 404 Client Error: Not Found for url: https://query1.finance.yahoo.com/v8/finance/chart/XAUUSD%3DX
+2026-08-25 08:52:46,830 [INFO] Cap nhat so lieu thi truong (5 chi so, 4 loai ngoai te)
+2026-08-25 08:52:46,978 [INFO] VnExpress Kinh doanh: 10 tin moi
+2026-08-25 08:52:47,122 [INFO] Tuoi Tre Kinh doanh: 2 tin moi
+2026-08-25 08:52:47,400 [INFO] Thanh Nien Kinh te: 9 tin moi
+2026-08-25 08:52:49,284 [INFO] VietnamNet Kinh doanh: 10 tin moi
+2026-08-25 08:52:49,459 [INFO] Tien Phong Kinh te: 6 tin moi
+2026-08-25 08:52:49,664 [INFO] CafeF: 10 tin moi
+2026-08-25 08:52:49,787 [INFO] 127.0.0.1 - - [25/Aug/2026 08:52:49] "GET /api/status HTTP/1.1" 200 -
