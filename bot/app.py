@@ -8,6 +8,7 @@ from pathlib import Path
 import requests
 from flask import Flask, jsonify, render_template, request
 
+import ai_enrich
 import fetch_news as fn
 import market_data as md
 import telegram_bot as tb
@@ -157,6 +158,9 @@ def run_fetch(limit_per_source=10):
     state = {k: v for k, v in state.items() if v >= cutoff}
     fn.STATE_FILE.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
 
+    new_items, ai_stats = ai_enrich.enrich(new_items)
+    if ai_stats.get("enabled"):
+        log.info("AI enrich: %s", ai_enrich.status_line(ai_stats))
     fn.save_news_file(new_items)
     append_news(new_items)
     stats["total_fetched"] = stats.get("total_fetched", 0) + len(new_items)
@@ -275,7 +279,8 @@ def api_news():
 def api_categories():
     news = load_store(NEWS_STORE, [])
     sources = fn.load_json(fn.SOURCES_FILE, [])
-    cats = sorted({s.get("category", "Khác") for s in sources if s.get("category")})
+    cats = sorted({s.get("category", "Khác") for s in sources if s.get("category")}
+                  | {i.get("category", "Khác") for i in news if i.get("category")})
     counts = {}
     today = datetime.now().strftime("%Y-%m-%d")
     for item in news:

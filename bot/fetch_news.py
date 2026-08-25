@@ -74,10 +74,12 @@ def fetch_feed(source):
 
 def format_item(item):
     cat = item.get("category", "")
+    ai_tag = "[AI] " if item.get("ai_summary") else ""
     cat_tag = f"[{cat}] " if cat else ""
-    lines = [f"{cat_tag}[{item['source']}] {item['title']}", item["link"]]
-    if item["summary"]:
-        lines.append(item["summary"])
+    lines = [f"{ai_tag}{cat_tag}[{item['source']}] {item['title']}", item["link"]]
+    summary = item.get("ai_summary") or item["summary"]
+    if summary:
+        lines.append(summary)
     return "\n".join(lines)
 
 

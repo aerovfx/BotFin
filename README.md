@@ -19,7 +19,7 @@ Mỗi lĩnh vực chỉ cần thay bộ nguồn RSS, bộ chỉ số theo dõi v
 Bot hiện tại đã đạt ~50% tiêu chuẩn một bot thông minh (tự động hóa, đa nguồn, chống trùng, đa kênh, dashboard, safe mode). Lộ trình bổ sung nửa còn lại:
 
 - [x] **Phần 1 — Tương tác hai chiều**: ra lệnh cho bot ngay trong Telegram (`/latest`, `/search`, `/market`, `/status`, `/fetch`) thay vì chỉ nhận tin một chiều
-- [ ] **Phần 2 — AI làm giàu tin**: tóm tắt bài viết bằng LLM, tự phân loại chủ đề thay vì gắn cứng theo nguồn
+- [x] **Phần 2 — AI làm giàu tin**: tóm tắt bài viết bằng LLM, tự phân loại chủ đề theo nội dung thay vì gắn cứng theo nguồn; tương thích mọi API chuẩn OpenAI (OpenAI, Ollama, LM Studio…)
 - [ ] **Phần 3 — Xếp hạng thông minh**: chấm điểm độ nóng từng tin, lọc chỉ gửi tin thực sự quan trọng
 - [ ] **Phần 4 — Cá nhân hóa**: học từ hành vi đọc của người dùng (mở/bỏ qua) để tinh chỉnh nội dung đẩy đi
 - [ ] **Phần 5 — Phân tích & cảnh báo**: sentiment tin tức, phát hiện xu hướng, alert khi chỉ số thị trường vượt ngưỡng
@@ -76,6 +76,24 @@ Nhắn trực tiếp cho bot trong Telegram:
 
 Chỉ chat ID đã cấu hình mới ra lệnh được bot; nếu `.env` chưa có `TELEGRAM_CHAT_ID`, người nhắn đầu tiên sẽ tự được ghi nhận.
 
+### AI làm giàu tin (Phần 2 của roadmap)
+
+Khi bật, mỗi tin mới trước khi gửi đi được LLM xử lý: **tóm tắt 1–2 câu tiếng Việt** và **tự gán nhãn chủ đề theo nội dung** (thay vì category cứng theo nguồn RSS). Tin chưa kịp xử lý hoặc khi AI lỗi vẫn được gửi bản gốc — bot không bao giờ dừng vì AI.
+
+- Tương thích mọi API chuẩn OpenAI: OpenAI chính chủ, Ollama chạy máy local (`http://127.0.0.1:11434/v1/chat/completions`), LM Studio…
+- Gom nhiều tin mỗi lần gọi để tiết kiệm chi phí; kết quả lưu cache trong `ai_cache.json` nên tin cũ không bị gọi lại
+- Trần số tin gọi AI mỗi chu kỳ (`AI_MAX_PER_RUN`) — phần vượt trần gửi nguyên bản
+
+Cấu hình trong `.env`:
+
+```ini
+AI_ENRICH=1                 # 0 = tắt hoàn toàn (mặc định)
+LLM_API_URL=http://127.0.0.1:11434/v1/chat/completions
+LLM_API_KEY=                # Ollama không cần key; OpenAI thì điền sk-...
+LLM_MODEL=gpt-4o-mini       # ví dụ Ollama: llama3.1
+AI_MAX_PER_RUN=20           # trần số tin gọi AI mỗi chu kỳ
+```
+
 ## Khởi động nhanh
 
 macOS — nhấp đúp là chạy:
@@ -121,6 +139,7 @@ bot/
 ├── app.py               # server dashboard + vòng lặp tự động
 ├── fetch_news.py        # lõi thu thập tin RSS + gửi kênh
 ├── telegram_bot.py      # lệnh hai chiều trên Telegram (roadmap phần 1)
+├── ai_enrich.py         # tóm tắt + phân loại tin bằng LLM (roadmap phần 2)
 ├── market_data.py       # số liệu chứng khoán, tỷ giá, vàng, dầu
 ├── templates/index.html # giao diện dashboard
 ├── sources.json         # danh sách nguồn RSS
@@ -129,6 +148,7 @@ bot/
 ├── news.json            # kho tin cho dashboard
 ├── market.json          # snapshot chỉ số thị trường
 ├── seen.json            # chống trùng tin
+├── ai_cache.json        # cache kết quả tóm tắt/phân loại của AI
 └── bot.log              # nhật ký hệ thống
 ```
 
